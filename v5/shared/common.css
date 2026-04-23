@@ -1,0 +1,48 @@
+@import url("/v5/shared/tokens.css");
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg-base); color: var(--text); font-family: var(--font-body); }
+body { min-height: 100vh; }
+
+a { color: var(--periwinkle); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button { font-family: inherit; cursor: pointer; }
+
+.btn-primary {
+  padding: 12px 24px;
+  background: var(--periwinkle);
+  color: var(--bg-base);
+  border: 1px solid var(--periwinkle);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.btn-primary:hover { background: #c0d0e5; }
+
+.btn-ghost {
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.04); }
+
+.btn-green {
+  padding: 14px 28px;
+  background: var(--green);
+  color: var(--bg-base);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.m-win { border: 1px solid var(--border-hover); border-radius: var(--radius-lg); background: var(--bg-base); overflow: hidden; }
+.m-head { background: var(--bg-panel); padding: 7px 14px; font-size: 10px; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.m-body { padding: 26px 22px; }
+
+.eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }

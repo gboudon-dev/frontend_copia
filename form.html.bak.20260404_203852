@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospecta — Inteligencia de Mercado INACAP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base:        #07071a;
+      --bg-surface:     rgba(255,255,255,0.048);
+      --bg-elevated:    rgba(255,255,255,0.072);
+      --orange-500:     #ff8c42;
+      --orange-400:     #ffaa6b;
+      --orange-glow:    rgba(255,140,66,0.18);
+      --blue-500:       #4f9eff;
+      --green-500:      #4caf82;
+      --text-primary:   #f0f0f8;
+      --text-secondary: rgba(240,240,248,0.55);
+      --text-muted:     rgba(240,240,248,0.30);
+      --border-subtle:  rgba(255,255,255,0.08);
+      --border-medium:  rgba(255,255,255,0.13);
+      --border-orange:  rgba(255,140,66,0.28);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-base);
+      background-image:
+        radial-gradient(ellipse at 25% 15%, rgba(0,100,200,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 85%, rgba(0,180,220,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 40%, rgba(0,60,140,0.12) 0%, transparent 70%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: #fff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    header .logo {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #ff8c42;
+    }
+
+    .header-brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon { flex-shrink: 0; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .header-brand:hover .brand-icon { transform: rotate(18deg) scale(1.08); }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .inacap-badge {
+      font-family: 'Sora', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 2.5px;
+      color: rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 6px;
+      padding: 4px 10px;
+      text-transform: uppercase;
+    }
+
+    header .subtitle {
+      font-size: 13px;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .nav-tab {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .nav-tab.active {
+      background: rgba(255,140,66,0.15);
+      color: #ff8c42;
+    }
+
+    /* ===== MAIN ===== */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+    }
+
+    /* ===== VIEW TOGGLE ===== */
+    .view { display: none; width: 100%; }
+    .view.active {
+      display: block;
+      animation: viewFadeIn 0.35s ease;
+    }
+
+    @keyframes viewFadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== FORM VIEW ===== */
+    #view-form {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Form Hero */
+    .form-hero {
+      text-align: center;
+      padding: 16px 0 32px;
+    }
+    .form-hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 18px;
+    }
+    .eyebrow-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green-500);
+      box-shadow: 0 0 8px rgba(76,175,130,0.7);
+      animation: blink-dot 2.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink-dot {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+    .form-hero-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 38px; font-weight: 800;
+      color: #fff; line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .form-hero-accent {
+      background: linear-gradient(135deg, #ff8c42, #ffaa6b, #4f9eff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .typewriter-cursor {
+      color: #ff8c42; font-weight: 300;
+      animation: blink-cursor 0.9s step-end infinite;
+    }
+    @keyframes blink-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+    .form-hero-sub {
+      font-size: 14px; color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 40px 44px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .card::after {
+      content: '';
+      position: absolute; inset: -1px;
+      border-radius: 21px;
+      background: linear-gradient(135deg, rgba(255,140,66,0.22), rgba(79,158,255,0.10), transparent 60%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .card h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .card .description {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .card .description strong {
+      color: #ff8c42;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 6px;
+    }
+
+    label .required {
+      color: #ff8c42;
+      margin-left: 2px;
+    }
+
+    textarea, select, input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      font-size: 14px;
+      color: #f0f0f0;
+      background: rgba(255,255,255,0.06);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      outline: none;
+      font-family: inherit;
+    }
+
+    textarea::placeholder, input[type="text"]::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+
+    textarea:focus, select:focus, input[type="text"]:focus {
+      border-color: rgba(255,140,66,0.5);
+      box-shadow: 0 0 0 3px rgba(255,140,66,0.1);
+      background: rgba(255,255,255,0.08);
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    select option {
+      background: #1a1a2e;
+      color: #f0f0f0;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    #otro-text {
+      display: none;
+      margin-top: 8px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 13px;
+      background: #ff8c42;
+      color: #0a0a1a;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Sora', 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    @keyframes btn-shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    button[type="submit"].generating {
+      background: linear-gradient(90deg, #ff8c42 25%, #ffd09e 50%, #ff8c42 75%);
+      background-size: 200% auto;
+      animation: btn-shimmer 1.8s linear infinite;
+      color: #0a0a1a;
+    }
+
+    button[type="submit"]:hover:not(:disabled) {
+      background: #ffa566;
+      box-shadow: 0 0 20px rgba(255,140,66,0.25);
+    }
+
+    button[type="submit"]:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    button[type="submit"]:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .status {
+      display: none;
+      margin-top: 20px;
+      padding: 16px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .status.success {
+      background: rgba(22,101,52,0.15);
+      border: 1.5px solid rgba(74,222,128,0.3);
+      color: #86efac;
+    }
+
+    .status.error {
+      background: rgba(153,27,27,0.15);
+      border: 1.5px solid rgba(252,165,165,0.3);
+      color: #fca5a5;
+    }
+
+    .status strong { display: block; margin-bottom: 4px; }
+
+    /* Progress tracker */
+    #progress-tracker {
+      display: none;
+      margin-top: 24px;
+      padding: 24px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+    }
+
+    .progress-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .timeline {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+
+    .timeline li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 6px 0;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      transition: color 0.4s;
+    }
+
+    .timeline li.active {
+      color: #ff8c42;
+    }
+
+    .timeline li.done {
+      color: rgba(255,255,255,0.55);
+    }
+
+    .timeline .icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      margin-top: 1px;
+      transition: all 0.4s;
+    }
+
+    .timeline li.pending .icon {
+      border: 2px solid rgba(255,255,255,0.15);
+    }
+
+    .timeline li.active .icon {
+      border: 2px solid #ff8c42;
+      background: rgba(255,140,66,0.15);
+      animation: pulse-icon 1.5s ease-in-out infinite;
+    }
+
+    .timeline li.done .icon {
+      border: 2px solid rgba(255,140,66,0.4);
+      background: rgba(255,140,66,0.1);
+      color: #ff8c42;
+    }
+
+    @keyframes pulse-icon {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,140,66,0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(255,140,66,0); }
+    }
+
+    .progress-bar-container {
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff8c42, #ffa566);
+      border-radius: 6px;
+      transition: width 0.8s ease;
+    }
+
+    .progress-percent {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      text-align: right;
+      margin-bottom: 16px;
+    }
+
+    .fun-fact {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      font-style: italic;
+      min-height: 20px;
+      transition: opacity 0.5s;
+    }
+
+    .fun-fact::before {
+      content: "\uD83D\uDCA1 ";
+      font-style: normal;
+    }
+
+    /* ===== ABOUT VIEW ===== */
+    #view-about {
+      max-width: 940px;
+      margin: 0 auto;
+    }
+
+    .about-section {
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .about-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 20px 0 40px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(255,140,66,0.12);
+      border: 1px solid rgba(255,140,66,0.25);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ff8c42;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .hero h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero h2 .accent {
+      background: linear-gradient(135deg, #ff8c42, #ffc178);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      color: rgba(255,255,255,0.55);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 40px;
+      font-weight: 700;
+      color: #ff8c42;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* Section titles */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ff8c42;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .section-heading {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    /* Pipeline */
+    .pipeline-container {
+      position: relative;
+      padding: 24px 0;
+      overflow-x: auto;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      min-width: 800px;
+      padding: 20px 10px;
+    }
+
+    .pipe-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .pipe-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pipe-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: #ff8c42;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .pipe-node:hover .pipe-icon {
+      background: rgba(255,140,66,0.12);
+      border-color: rgba(255,140,66,0.3);
+      box-shadow: 0 0 24px rgba(255,140,66,0.15);
+      transform: translateY(-4px);
+    }
+
+    .pipe-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      max-width: 90px;
+      line-height: 1.3;
+    }
+
+    .pipe-desc {
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+      max-width: 100px;
+      line-height: 1.3;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: all 0.25s;
+    }
+
+    .pipe-node:hover .pipe-desc {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .pipe-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      margin-bottom: 30px;
+    }
+
+    .pipe-arrow svg {
+      width: 32px;
+      height: 12px;
+    }
+
+    .pipe-arrow-line {
+      stroke: rgba(255,140,66,0.35);
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+      animation: flowDash 1.2s linear infinite;
+    }
+
+    .pipe-arrow-head {
+      fill: rgba(255,140,66,0.5);
+    }
+
+    @keyframes flowDash {
+      to { stroke-dashoffset: -20; }
+    }
+
+    /* Tech cards */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .tech-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .tech-card:hover {
+      background: rgba(255,140,66,0.06);
+      border-color: rgba(255,140,66,0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(255,140,66,0.08);
+    }
+
+    .tech-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255,140,66,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .tech-card-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: #ff8c42;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tech-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .tech-card p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    /* Product cards */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--product-color, #ff8c42), transparent);
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .product-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(255,140,66,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .product-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--product-color, #ff8c42);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .product-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .product-card .product-for {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--product-color, #ff8c42);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    .product-card p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* Sectors */
+    .sectors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .sector-cell {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .sector-cell:hover {
+      background: rgba(255,140,66,0.08);
+      border-color: rgba(255,140,66,0.2);
+      color: rgba(255,255,255,0.85);
+    }
+
+    .sector-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff8c42;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    /* About CTA */
+    .about-cta {
+      text-align: center;
+      padding: 40px 0 20px;
+    }
+
+    .about-cta p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 20px;
+    }
+
+    .about-cta strong {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .btn-cta {
+      display: inline-block;
+      padding: 14px 32px;
+      background: #ff8c42;
+      color: #0a0a1a;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-cta:hover {
+      background: #ffa566;
+      box-shadow: 0 0 24px rgba(255,140,66,0.25);
+    }
+
+    .btn-cta:active {
+      transform: scale(0.98);
+    }
+
+    /* ===== SUCCESS CARD ===== */
+    .status-success-card {
+      margin-top: 24px;
+      padding: 32px 28px;
+      background: rgba(76,175,130,0.07);
+      border: 1px solid rgba(76,175,130,0.25);
+      border-radius: 16px;
+      text-align: center;
+      animation: successReveal 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes successReveal {
+      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .success-check-anim { margin-bottom: 16px; }
+    .success-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 18px; font-weight: 700;
+      color: var(--green-500); margin-bottom: 8px;
+    }
+    .success-body {
+      font-size: 14px; color: var(--text-secondary);
+      line-height: 1.6; margin-bottom: 20px;
+    }
+    .success-link-btn {
+      display: inline-block;
+      padding: 10px 24px;
+      background: rgba(76,175,130,0.12);
+      border: 1px solid rgba(76,175,130,0.32);
+      border-radius: 8px;
+      color: var(--green-500); font-weight: 600; font-size: 14px;
+      text-decoration: none;
+      transition: background 0.2s;
+      margin-bottom: 12px;
+    }
+    .success-link-btn:hover { background: rgba(76,175,130,0.22); }
+    .success-reset-btn {
+      display: block; width: 100%; margin-top: 8px;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-muted); font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .success-reset-btn:hover { border-color: var(--border-medium); color: var(--text-secondary); }
+
+    /* ===== RECENT REPORTS ===== */
+    .recent-reports {
+      margin-top: 28px;
+      animation: viewFadeIn 0.4s ease;
+    }
+    .reports-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .reports-count {
+      font-size: 12px; color: var(--text-muted);
+    }
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 10px;
+    }
+    .report-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: block;
+    }
+    .report-card:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-orange);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(255,140,66,0.07);
+    }
+    .report-card-icon { font-size: 22px; margin-bottom: 10px; }
+    .report-card-name {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4; margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .report-card-date { font-size: 11px; color: var(--text-muted); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .footer-inner {
+      display: flex; justify-content: center;
+      align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .footer-sep { color: var(--border-medium); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 20px;
+        text-align: center;
+      }
+      .header-right { justify-content: center; }
+
+      .form-hero-title { font-size: 28px; }
+      .reports-grid { grid-template-columns: 1fr 1fr; }
+
+      .hero h2 { font-size: 26px; }
+      .hero-sub { font-size: 15px; }
+      .stats-row { gap: 24px; }
+      .stat-number { font-size: 32px; }
+
+      .pipeline { flex-direction: column; min-width: unset; gap: 0; }
+      .pipe-arrow { transform: rotate(90deg); margin-bottom: 0; padding: 4px 0; }
+      .pipe-desc { opacity: 1; transform: none; }
+
+      .card { padding: 28px 20px; }
+      .row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .nav-tab { padding: 6px 12px; font-size: 12px; }
+      .form-hero-title { font-size: 24px; }
+      .reports-grid { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 22px; }
+      .sectors-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+      .inacap-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.30;"></canvas>
+
+<header style="position:relative;z-index:2;">
+  <div class="header-brand">
+    <div class="brand-icon">
+      <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="18,2 33,10.5 33,25.5 18,34 3,25.5 3,10.5" stroke="#ff8c42" stroke-width="1.4" opacity="0.55"/>
+        <polygon points="18,7 28,13 28,23 18,29 8,23 8,13" fill="rgba(255,140,66,0.07)" stroke="#ff8c42" stroke-width="1"/>
+        <path d="M18 11 L22 18 L18 25 L14 18 Z" fill="#ff8c42" opacity="0.9"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo">Prospecta</div>
+      <div class="subtitle">Inteligencia de Mercado · INACAP</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="inacap-badge">DAI</div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="form">Generador</button>
+      <button class="nav-tab" data-view="about">Sistema</button>
+    </nav>
+  </div>
+</header>
+
+<main style="position:relative;z-index:1;">
+  <!-- ===== FORM VIEW ===== -->
+  <div id="view-form" class="view active">
+
+    <!-- Hero strip -->
+    <div class="form-hero">
+      <div class="form-hero-eyebrow">
+        <span class="eyebrow-dot"></span>
+        Sistema activo &middot; Base de conocimiento actualizada
+      </div>
+      <h1 class="form-hero-title">
+        Genera inteligencia<br>
+        <span class="form-hero-accent" id="typewriter-text">prospectiva</span><span class="typewriter-cursor">|</span>
+      </h1>
+      <p class="form-hero-sub">13 sectores &nbsp;&middot;&nbsp; RAG + agentes IA &nbsp;&middot;&nbsp; PDF listo en ~3 minutos</p>
+    </div>
+
+    <div class="card">
+      <h1>Generador de Inteligencia</h1>
+      <p class="description">
+        Define el objetivo y la audiencia del informe. El sistema consultará la base de conocimiento,
+        estructurará las secciones y generará un PDF que quedará disponible en Nextcloud&nbsp;→&nbsp;<strong>/informes/</strong>.
+      </p>
+
+      <form id="form">
+        <div class="field">
+          <label for="report_goal">Objetivo del informe<span class="required">*</span></label>
+          <textarea
+            id="report_goal"
+            name="report_goal"
+            placeholder="Ej: Según las principales tendencias económicas respecto al mercado laboral del futuro, ¿qué consideraciones se deben tener para las carreras de INACAP?"
+            required
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="audience">Audiencia principal<span class="required">*</span></label>
+          <select id="audience" name="audience" required>
+            <option value="" disabled selected>Selecciona la audiencia...</option>
+            <option value="directivos de areas academicas">Directivos académicos</option>
+            <option value="alta direccion">Alta dirección</option>
+            <option value="equipos tecnicos">Equipos técnicos</option>
+            <option value="otro">Otro...</option>
+          </select>
+          <input
+            type="text"
+            id="otro-text"
+            placeholder="Describe la audiencia..."
+          />
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="tone">Tono</label>
+            <select id="tone" name="tone">
+              <option value="ejecutivo">Ejecutivo</option>
+              <option value="academico">Académico</option>
+              <option value="tecnico">Técnico</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="desired_length">Extensión</label>
+            <select id="desired_length" name="desired_length">
+              <option value="long">Largo</option>
+              <option value="medium">Medio</option>
+              <option value="short">Corto</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn">Generar informe</button>
+      </form>
+
+      <div id="progress-tracker">
+        <div class="progress-title">Generando tu informe...</div>
+        <ul class="timeline" id="timeline">
+          <li class="pending" data-step="0"><span class="icon"></span>Consultando base de conocimiento</li>
+          <li class="pending" data-step="1"><span class="icon"></span>Planificando estructura del informe</li>
+          <li class="pending" data-step="2"><span class="icon"></span>Redactando secciones</li>
+          <li class="pending" data-step="3"><span class="icon"></span>Generando resumen ejecutivo</li>
+          <li class="pending" data-step="4"><span class="icon"></span>Convirtiendo a PDF y subiendo</li>
+        </ul>
+        <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-fill"></div></div>
+        <div class="progress-percent" id="progress-percent">0%</div>
+        <div class="fun-fact" id="fun-fact"></div>
+      </div>
+
+      <div class="status-success-card" id="status-success" style="display:none;">
+        <div class="success-check-anim">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="26" cy="26" r="23" stroke="#4caf82" stroke-width="2"
+              stroke-dasharray="144.5" stroke-dashoffset="144.5" id="success-circle"
+              style="transition:stroke-dashoffset 0.55s ease;"/>
+            <polyline points="15,26 23,34 37,18" stroke="#4caf82" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"
+              stroke-dasharray="30" stroke-dashoffset="30" id="success-check"
+              style="transition:stroke-dashoffset 0.4s ease 0.45s;"/>
+          </svg>
+        </div>
+        <div class="success-title">Informe en proceso</div>
+        <div class="success-body">
+          Tu informe será generado en los próximos minutos y quedará disponible en
+          <strong>Nextcloud &rarr; /informes/</strong>
+        </div>
+        <a href="http://10.58.114.31:18080" target="_blank" class="success-link-btn">Abrir Nextcloud &rarr;</a>
+        <button class="success-reset-btn" id="success-reset-btn">Generar otro informe</button>
+      </div>
+
+      <div class="status error" id="status-error">
+        <strong>Error al enviar la solicitud</strong>
+        <span id="error-msg"></span>
+      </div>
+    </div>
+
+    <!-- Galería de informes recientes -->
+    <div class="recent-reports" id="recent-reports" style="display:none;">
+      <div class="reports-header">
+        <div class="section-title" style="text-align:left;margin-bottom:0;">Informes recientes</div>
+        <span class="reports-count" id="reports-count"></span>
+      </div>
+      <div class="reports-grid" id="reports-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== ABOUT VIEW ===== -->
+  <div id="view-about" class="view">
+
+    <!-- Hero -->
+    <div class="about-section hero">
+      <div class="hero-badge">Dirección de Análisis Institucional</div>
+      <h2>Inteligencia <span class="accent">Prospectiva</span><br>para INACAP</h2>
+      <p class="hero-sub">
+        Combinamos agentes de inteligencia artificial, análisis predictivo y conocimiento experto
+        para transformar información dispersa en insumos estratégicos que anticipan el futuro.
+      </p>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-number" data-target="13">0</div>
+          <div class="stat-label">Sectores monitoreados</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" data-target="3">0</div>
+          <div class="stat-label">Productos estratégicos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" data-target="6">0</div>
+          <div class="stat-label">Frentes institucionales</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="about-section">
+      <div class="section-title">Arquitectura</div>
+      <div class="section-heading">Cómo funciona el pipeline</div>
+      <div class="pipeline-container">
+        <div class="pipeline">
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="pipe-label">Fuentes</div>
+            <div class="pipe-desc">+40 fuentes nacionales e internacionales</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            </div>
+            <div class="pipe-label">Automatización</div>
+            <div class="pipe-desc">Scraping y levantamiento automático</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="pipe-label">Parsing</div>
+            <div class="pipe-desc">PDF, DOCX, HTML a texto estructurado</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z"/></svg>
+            </div>
+            <div class="pipe-label">Clasificación + Context Engineering</div>
+            <div class="pipe-desc">IA clasifica por área con RAG</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            <div class="pipe-label">Vectorización</div>
+            <div class="pipe-desc">Embeddings semánticos en Qdrant</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="pipe-label">Agentes IA</div>
+            <div class="pipe-desc">Ecosistema multi-agente especializado</div>
+          </div>
+
+          <div class="pipe-arrow"><svg viewBox="0 0 32 12"><line class="pipe-arrow-line" x1="0" y1="6" x2="24" y2="6"/><polygon class="pipe-arrow-head" points="24,2 32,6 24,10"/></svg></div>
+
+          <div class="pipe-node">
+            <div class="pipe-icon">
+              <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="pipe-label">Productos</div>
+            <div class="pipe-desc">Informes, radares y modelos predictivos</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="about-section">
+      <div class="section-title">Tecnología</div>
+      <div class="section-heading">Stack de inteligencia artificial</div>
+      <div class="tech-grid">
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <h3>RAG</h3>
+          <p>Retrieval-Augmented Generation. Cada consulta se enriquece con evidencia real de la base de conocimiento antes de generar respuestas.</p>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <h3>Qdrant</h3>
+          <p>Base de datos vectorial de alto rendimiento. Almacena y busca semánticamente en 13 colecciones sectoriales especializadas.</p>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Agentes IA</h3>
+          <p>Ecosistema de agentes especializados orquestados por n8n. Cada uno cumple un rol: clasificar, redactar, analizar o sintetizar.</p>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3>Búsqueda Semántica</h3>
+          <p>Busca por significado, no por palabras clave. Encuentra información relevante incluso cuando se expresa de formas distintas.</p>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>Pipelines Automatizados</h3>
+          <p>Flujos de ingesta y procesamiento que corren sin intervención. Desde la fuente hasta el vector store, todo es automático.</p>
+        </div>
+
+        <div class="tech-card">
+          <div class="tech-card-icon">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3>Modelos Predictivos</h3>
+          <p>Estimación probabilística de demanda con machine learning. Anticipa tendencias del mercado laboral y formativo.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="about-section">
+      <div class="section-title">Productos</div>
+      <div class="section-heading">Inteligencia para cada frente</div>
+      <div class="products-grid">
+
+        <div class="product-card" style="--product-color: #ff8c42">
+          <div class="product-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="product-for">Educación Continua</div>
+          <h3>Radar de Oportunidades</h3>
+          <p>Monitoreo dinámico de competencia, clientes, productos y oportunidades sectoriales. Detecta señales tempranas de cambio en el mercado formativo.</p>
+        </div>
+
+        <div class="product-card" style="--product-color: #64b5f6">
+          <div class="product-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="product-for">Planificación</div>
+          <h3>Modelo Predictivo de Demanda</h3>
+          <p>Estimación probabilística de demanda futura mediante machine learning. Transforma datos históricos y tendencias en proyecciones accionables.</p>
+        </div>
+
+        <div class="product-card" style="--product-color: #81c784">
+          <div class="product-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="product-for">VRAI</div>
+          <h3>Observatorio Estratégico</h3>
+          <p>Monitor interactivo y tablero de señales emergentes. Información estratégica curada y actualizada para la toma de decisiones institucionales.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sectors -->
+    <div class="about-section">
+      <div class="section-title">Cobertura</div>
+      <div class="section-heading">13 sectores bajo vigilancia</div>
+      <div class="sectors-grid">
+        <div class="sector-cell"><span class="sector-dot"></span>Informática y Ciberseguridad</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Automatización y Robótica</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Diseño e Industria Digital</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Administración</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Salud</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Turismo y Hospitalidad</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Gastronomía</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Logística</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Minería</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Mecánica</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Agroindustria y Medioambiente</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Construcción</div>
+        <div class="sector-cell"><span class="sector-dot"></span>Energía</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="about-section about-cta">
+      <p>Liderado por la <strong>Dirección de Análisis Institucional</strong></p>
+      <button class="btn-cta" onclick="switchView('form')">Generar un Informe &rarr;</button>
+    </div>
+
+  </div>
+</main>
+
+<footer style="position:relative;z-index:1;">
+  <div class="footer-inner">
+    <span>Sistema Prospecta &middot; INACAP</span>
+    <span class="footer-sep">&middot;</span>
+    <span>Dirección de Análisis Institucional</span>
+    <span class="footer-sep">&middot;</span>
+    <span>Solo acceso interno</span>
+  </div>
+</footer>
+
+<script>
+  // ===== VIEW NAVIGATION =====
+  function switchView(view) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+
+    if (view === 'about') {
+      animateAboutEntrance();
+      animateCounters();
+    }
+  }
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchView(tab.dataset.view));
+  });
+
+  // ===== ABOUT ENTRANCE ANIMATIONS =====
+  function animateAboutEntrance() {
+    const sections = document.querySelectorAll('#view-about .about-section');
+    sections.forEach((s, i) => {
+      s.classList.remove('visible');
+      setTimeout(() => s.classList.add('visible'), 80 * i);
+    });
+  }
+
+  // ===== COUNTER ANIMATION =====
+  let countersAnimated = false;
+  function animateCounters() {
+    if (countersAnimated) return;
+    countersAnimated = true;
+    document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      const duration = 1200;
+      const start = performance.now();
+      function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(target * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // ===== FORM: AUDIENCE TOGGLE =====
+  const audienceSelect = document.getElementById('audience');
+  const otroText = document.getElementById('otro-text');
+
+  audienceSelect.addEventListener('change', () => {
+    otroText.style.display = audienceSelect.value === 'otro' ? 'block' : 'none';
+    if (audienceSelect.value === 'otro') otroText.focus();
+  });
+
+  // ===== PROGRESS TRACKER =====
+  // Fases visuales — el avance real lo controla el polling
+  const PHASE_LABELS = [
+    'Consultando base de conocimiento',
+    'Planificando estructura del informe',
+    'Redactando secciones',
+    'Generando resumen ejecutivo',
+    'Convirtiendo a PDF y subiendo'
+  ];
+
+  const FUN_FACTS = [
+    'Prospecta analiza fuentes de más de 15 países de Latinoamérica',
+    'Cada informe consulta automáticamente la base de conocimiento institucional',
+    'Los agentes de IA trabajan en equipo para estructurar cada sección',
+    'El sistema identifica tendencias relevantes para las carreras de INACAP',
+    'Prospecta transforma información dispersa en inteligencia estratégica',
+    'Cada sección se enriquece con evidencia de fuentes verificadas',
+    'El informe final queda disponible en Nextcloud para todo el equipo',
+    'La inteligencia de mercado anticipa cambios antes de que ocurran'
+  ];
+
+  let progressTimers = [];
+  let factInterval = null;
+  let pollInterval = null;
+  let progressRAF = null;
+  let knownReports = new Set();
+  const POLL_INTERVAL = 15000;  // 15s entre polls
+  const POLL_TIMEOUT  = 300000; // 5 minutos máximo
+
+  /** Captura los nombres de PDFs actuales antes de enviar */
+  async function snapshotReports() {
+    try {
+      const res = await fetch('/api/informes');
+      if (!res.ok) return;
+      const data = await res.json();
+      knownReports = new Set((data.informes || []).map(i => i.nombre));
+    } catch(e) { /* si falla, set vacío — el poll igual detectará */ }
+  }
+
+  /** Inicia polling: resuelve cuando aparece un PDF nuevo, rechaza por timeout */
+  function startPolling() {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+
+      async function poll() {
+        try {
+          const res = await fetch('/api/informes');
+          if (res.ok) {
+            const data = await res.json();
+            const current = (data.informes || []).map(i => i.nombre);
+            const newPdf = current.find(name => !knownReports.has(name));
+            if (newPdf) { resolve(newPdf); return; }
+          }
+        } catch(e) { /* reintentar en el próximo ciclo */ }
+
+        if (Date.now() - start > POLL_TIMEOUT) {
+          reject(new Error('timeout'));
+          return;
+        }
+        pollInterval = setTimeout(poll, POLL_INTERVAL);
+      }
+
+      // Primer poll después de 10s (dar tiempo a que n8n arranque)
+      pollInterval = setTimeout(poll, 10000);
+    });
+  }
+
+  function startProgress() {
+    const tracker = document.getElementById('progress-tracker');
+    const steps = document.querySelectorAll('#timeline li');
+    const fill = document.getElementById('progress-fill');
+    const percent = document.getElementById('progress-percent');
+    const factEl = document.getElementById('fun-fact');
+
+    tracker.style.display = 'block';
+
+    steps.forEach(s => { s.className = 'pending'; });
+    fill.style.width = '0%';
+    percent.textContent = '0%';
+
+    // Animación suave: avanza hasta 90% en ~4 minutos con curva logarítmica
+    const startTime = Date.now();
+    const maxVisualMs = 240000; // 4 min para llegar a 90%
+
+    function animateBar() {
+      const elapsed = Date.now() - startTime;
+      // Curva logarítmica: avanza rápido al inicio, se frena al acercarse a 90%
+      const t = Math.min(elapsed / maxVisualMs, 1);
+      const pct = 90 * (1 - Math.pow(1 - t, 2.5));
+
+      fill.style.width = pct.toFixed(1) + '%';
+      percent.textContent = Math.round(pct) + '%';
+
+      // Avanzar fases visuales según porcentaje
+      const phaseIndex = pct < 10 ? 0 : pct < 25 ? 1 : pct < 70 ? 2 : pct < 85 ? 3 : 4;
+      steps.forEach((s, j) => {
+        if (j < phaseIndex) s.className = 'done';
+        else if (j === phaseIndex) s.className = 'active';
+        else s.className = 'pending';
+      });
+
+      if (pct < 90) progressRAF = requestAnimationFrame(animateBar);
+    }
+    progressRAF = requestAnimationFrame(animateBar);
+
+    // Fun facts
+    let factIndex = Math.floor(Math.random() * FUN_FACTS.length);
+    factEl.style.opacity = '1';
+    factEl.textContent = FUN_FACTS[factIndex];
+
+    factInterval = setInterval(() => {
+      factEl.style.opacity = '0';
+      setTimeout(() => {
+        factIndex = (factIndex + 1) % FUN_FACTS.length;
+        factEl.textContent = FUN_FACTS[factIndex];
+        factEl.style.opacity = '1';
+      }, 500);
+    }, 6000);
+
+    // Polling real: espera a que aparezca el PDF
+    startPolling().then(() => {
+      stopProgress(true);
+    }).catch(() => {
+      // Timeout: mostrar mensaje pero no error destructivo
+      stopProgress(true); // asumimos que puede haber terminado
+    });
+  }
+
+  function stopProgress(success) {
+    // Limpiar animación y timers
+    if (progressRAF) { cancelAnimationFrame(progressRAF); progressRAF = null; }
+    if (pollInterval) { clearTimeout(pollInterval); pollInterval = null; }
+    progressTimers.forEach(t => clearTimeout(t));
+    progressTimers = [];
+    if (factInterval) { clearInterval(factInterval); factInterval = null; }
+
+    const tracker = document.getElementById('progress-tracker');
+    const steps = document.querySelectorAll('#timeline li');
+    const fill = document.getElementById('progress-fill');
+    const percent = document.getElementById('progress-percent');
+    const factEl = document.getElementById('fun-fact');
+
+    if (success) {
+      steps.forEach(s => { s.className = 'done'; });
+      fill.style.width = '100%';
+      percent.textContent = '100%';
+      factEl.style.opacity = '0';
+      setTimeout(() => {
+        tracker.style.display = 'none';
+        const card = document.getElementById('status-success');
+        card.style.display = 'block';
+        // Animar el check SVG
+        const circle = document.getElementById('success-circle');
+        const check  = document.getElementById('success-check');
+        if (circle) { requestAnimationFrame(() => { circle.style.strokeDashoffset = '0'; }); }
+        if (check)  { requestAnimationFrame(() => { check.style.strokeDashoffset = '0'; }); }
+        // Recargar galería y resetear botón
+        loadRecentReports();
+        document.getElementById('submit-btn').textContent = 'Solicitud enviada';
+        document.getElementById('submit-btn').classList.remove('generating');
+      }, 1500);
+    } else {
+      tracker.style.display = 'none';
+    }
+  }
+
+  // ===== FORM SUBMIT =====
+  let isSubmitting = false;
+
+  document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    const btn = document.getElementById('submit-btn');
+    const success = document.getElementById('status-success');
+    const error = document.getElementById('status-error');
+    const errorMsg = document.getElementById('error-msg');
+
+    [success, error].forEach(el => el.style.display = 'none');
+    document.getElementById('progress-tracker').style.display = 'none';
+
+    let audience = audienceSelect.value;
+    if (audience === 'otro') {
+      audience = otroText.value.trim() || 'equipo interno';
+    }
+
+    const payload = {
+      report_goal: document.getElementById('report_goal').value.trim(),
+      audience,
+      tone: document.getElementById('tone').value,
+      desired_length: document.getElementById('desired_length').value,
+      min_palabras: '400',
+      max_palabras: '600'
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Preparando...';
+
+    // Capturar PDFs actuales antes de enviar (para detectar el nuevo)
+    await snapshotReports();
+
+    btn.textContent = 'Enviando...';
+
+    try {
+      const res = await fetch('/api/generar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        btn.textContent = 'Generando...';
+        btn.classList.add('generating');
+        startProgress();
+      } else {
+        errorMsg.textContent = data.message || data.error || `Error ${res.status}`;
+        error.style.display = 'block';
+        btn.disabled = false;
+        btn.classList.remove('generating');
+        btn.textContent = 'Generar informe';
+        isSubmitting = false;
+      }
+    } catch (err) {
+      errorMsg.textContent = 'No se pudo conectar con el servidor. Verifica tu conexión a la red INACAP.';
+      error.style.display = 'block';
+      btn.disabled = false;
+      btn.classList.remove('generating');
+      btn.textContent = 'Generar informe';
+      isSubmitting = false;
+    }
+  });
+
+  // ===== RESET BUTTON =====
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'success-reset-btn') {
+      document.getElementById('status-success').style.display = 'none';
+      document.getElementById('form').reset();
+      document.getElementById('otro-text').style.display = 'none';
+      const btn2 = document.getElementById('submit-btn');
+      btn2.textContent = 'Generar informe';
+      btn2.disabled = false;
+      btn2.classList.remove('generating');
+      isSubmitting = false;
+    }
+  });
+  // ===== TYPEWRITER =====
+  (function() {
+    const WORDS = ['prospectiva', 'estratégica', 'de mercado', 'sectorial'];
+    let idx = 0, char = 0, deleting = false;
+    const el = document.getElementById('typewriter-text');
+    if (!el) return;
+    function tick() {
+      const word = WORDS[idx];
+      if (!deleting) {
+        el.textContent = word.slice(0, ++char);
+        if (char === word.length) { deleting = true; setTimeout(tick, 2400); return; }
+      } else {
+        el.textContent = word.slice(0, --char);
+        if (char === 0) { deleting = false; idx = (idx + 1) % WORDS.length; }
+      }
+      setTimeout(tick, deleting ? 55 : 85);
+    }
+    setTimeout(tick, 900);
+  })();
+
+  // ===== PARTICLES BACKGROUND =====
+  (function() {
+    const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, particles;
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    function init() {
+      resize();
+      const count = W < 768 ? 25 : 55;
+      particles = Array.from({length: count}, () => ({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.4,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22,
+        alpha: Math.random() * 0.45 + 0.15,
+        color: Math.random() > 0.65 ? '#4f9eff' : '#ff8c42'
+      }));
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 110) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = '#ff8c42';
+            ctx.globalAlpha = (1 - dist / 110) * 0.055;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize', () => { resize(); init(); });
+    init(); draw();
+  })();
+
+  // ===== RECENT REPORTS =====
+  async function loadRecentReports() {
+    try {
+      const res = await fetch('/api/informes');
+      if (!res.ok) return;
+      const data = await res.json();
+      const grid    = document.getElementById('reports-grid');
+      const section = document.getElementById('recent-reports');
+      const countEl = document.getElementById('reports-count');
+      if (!data.informes || data.informes.length === 0) return;
+      countEl.textContent = data.informes.length + ' disponibles';
+      section.style.display = 'block';
+      grid.innerHTML = '';
+      data.informes.forEach(inf => {
+        const match = inf.nombre.match(/(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})/);
+        const dateLabel = match ? match[1] + ' ' + match[2] + ':' + match[3] : '';
+        const display   = inf.nombre.replace(/^informe_/, '').replace(/\.pdf$/, '').replace(/_/g, ' ');
+        const a = document.createElement('a');
+        a.className = 'report-card';
+        a.href = inf.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        const icon = document.createElement('div');
+        icon.className = 'report-card-icon';
+        icon.textContent = '📄';
+        const name = document.createElement('div');
+        name.className = 'report-card-name';
+        name.textContent = display;
+        const date = document.createElement('div');
+        date.className = 'report-card-date';
+        date.textContent = dateLabel;
+        a.append(icon, name, date);
+        grid.appendChild(a);
+      });
+    } catch(e) { /* silencioso */ }
+  }
+  document.addEventListener('DOMContentLoaded', loadRecentReports);
+
+</script>
+
+</body>
+</html>

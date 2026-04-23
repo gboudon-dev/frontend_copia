@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospecta — Mapa de Memoria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  </noscript>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --bg-base: #0D1117;
+      --bg-surface: rgba(255,255,255,0.048);
+      --bg-elevated: rgba(255,255,255,0.072);
+      --text-primary: #C9D1D9;
+      --text-secondary: #8895A8;
+      --border-subtle: rgba(255,255,255,0.08);
+      --brand: #8B9FD4;
+      --brand-glow: rgba(139,159,212,0.18);
+      --peach: #D4A574;
+      --green: #7FB99A;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .header h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--brand), var(--peach));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header .stats {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .header .stats span {
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    /* ── Panel lateral ── */
+    .panel {
+      position: fixed;
+      top: 56px;
+      left: 16px;
+      z-index: 90;
+      width: 260px;
+      max-height: calc(100vh - 72px);
+      overflow-y: auto;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel::-webkit-scrollbar { width: 4px; }
+    .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .panel h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--brand);
+    }
+    .search-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* ── Leyenda de areas ── */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      cursor: pointer;
+      font-size: 12px;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+    .legend-item.hidden {
+      opacity: 0.3;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .legend-count {
+      margin-left: auto;
+      color: var(--text-secondary);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* ── Tipo de fuente ── */
+    .source-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .source-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-family: 'Inter', sans-serif;
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .source-btn.active {
+      background: var(--brand-glow);
+      border-color: var(--brand);
+      color: var(--text-primary);
+    }
+
+    /* ── Tooltip ── */
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 200;
+      background: rgba(22,27,34,0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      max-width: 320px;
+      font-size: 13px;
+      line-height: 1.5;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip .tt-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    .tooltip .tt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text-secondary);
+    }
+    .tooltip .tt-row .tt-val {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .tooltip .tt-area {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    /* ── Detail panel (click) ── */
+    .detail-panel {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 150;
+      background: rgba(22,27,34,0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 24px;
+      max-width: 600px;
+      width: calc(100% - 320px);
+      display: none;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .detail-panel.visible { display: flex; flex-wrap: wrap; }
+    .detail-panel .detail-title {
+      width: 100%;
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .detail-panel .detail-meta {
+      color: var(--text-secondary);
+    }
+    .detail-panel .detail-meta span { color: var(--brand); font-weight: 500; }
+    .detail-panel .detail-close {
+      position: absolute;
+      top: 8px; right: 12px;
+      background: none; border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* ── SVG ── */
+    svg { width: 100%; height: 100%; }
+    .link { stroke-linecap: round; }
+    .node { cursor: pointer; }
+    .node circle { transition: r 0.2s, stroke-width 0.2s; }
+    .node-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      fill: var(--text-secondary);
+      pointer-events: none;
+      text-anchor: middle;
+    }
+
+    /* ── Clusters ── */
+    .cluster-halo {
+      pointer-events: none;
+    }
+    .cluster-label {
+      pointer-events: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+    }
+    #cluster-toggle {
+      margin-top: 2px;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      background: var(--bg-base);
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border-subtle);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: var(--text-secondary); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>Cargando mapa de memoria...</p>
+</div>
+
+<div class="header">
+  <h1>PROSPECTA — Mapa de Memoria</h1>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="panel" id="panel">
+  <div>
+    <h3>Buscar</h3>
+    <input class="search-input" id="search" type="text" placeholder="Nombre del documento..." />
+  </div>
+  <div>
+    <h3>Fuente</h3>
+    <div class="source-filters" id="source-filters"></div>
+  </div>
+  <div>
+    <h3>Areas INACAP</h3>
+    <div id="legend"></div>
+  </div>
+  <div>
+    <h3>Visualizacion</h3>
+    <button id="cluster-toggle" class="source-btn" onclick="toggleClusters()">Clusters</button>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="detail-panel" id="detail">
+  <button class="detail-close" onclick="closeDetail()">&times;</button>
+</div>
+
+<svg id="graph"></svg>
+
+<script>
+// ── Paleta de 15+ colores para areas ──
+const AREA_COLORS = {
+  'Informatica, Ciberseguridad y Telecomunicaciones': '#8B9FD4',
+  'Automatizacion, Electronica y Robotica':           '#6BA4D4',
+  'Diseno e Industria Digital':                        '#A88BD4',
+  'Administracion':                                    '#D4A574',
+  'Salud':                                             '#D47B8A',
+  'Turismo y Hospitalidad':                            '#D4C374',
+  'Gastronomia':                                       '#D49A6B',
+  'Logistica':                                         '#7FB99A',
+  'Mineria':                                           '#B9A87F',
+  'Mecanica':                                          '#8FB9D4',
+  'Agroindustria y Medioambiente':                     '#6BBF6B',
+  'Construccion':                                      '#BFA86B',
+  'Energia':                                           '#E8C44D',
+  'Educacion Continua':                                '#D48BBF',
+  'Direccion de Oferta Academica':                     '#8BD4C5',
+  'Sin area':                                          '#555D6B',
+};
+
+function areaColor(area) {
+  if (AREA_COLORS[area]) return AREA_COLORS[area];
+  // Fuzzy match (sin tildes)
+  const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const key = norm(area);
+  for (const [k, v] of Object.entries(AREA_COLORS)) {
+    if (norm(k) === key) return v;
+  }
+  return '#555D6B';
+}
+
+// ── State ──
+let graphData = null;
+let simulation = null;
+let hiddenAreas = new Set();
+let hiddenSources = new Set();
+let searchQuery = '';
+let selectedNode = null;
+let showClusters = false;
+let visibleIds = new Set();
+let clustersLayer = null;
+let clusterMeta = {};
+
+// ── Load data ──
+fetch('/api/grafo')
+  .then(r => r.json())
+  .then(data => { graphData = data; init(); })
+  .catch(err => {
+    document.getElementById('loading').innerHTML =
+      `<p style="color:#D47B8A">Error cargando datos: ${err.message}</p>
+       <p style="color:var(--text-secondary);font-size:12px;margin-top:8px">
+         Ejecuta: uv run scripts/grafo_memoria.py</p>`;
+  });
+
+function init() {
+  document.getElementById('loading').style.display = 'none';
+
+  const { nodes, links, metadata } = graphData;
+
+  // Stats
+  document.getElementById('stats').innerHTML =
+    `<span>${nodes.length}</span> documentos &nbsp;&middot;&nbsp; ` +
+    `<span>${links.length}</span> conexiones &nbsp;&middot;&nbsp; ` +
+    `umbral ${metadata.threshold}`;
+
+  buildLegend(nodes);
+  buildSourceFilters(nodes);
+  buildGraph(nodes, links);
+  nodes.forEach(n => visibleIds.add(n.id));
+  if (graphData.clusters) {
+    graphData.clusters.forEach(c => { clusterMeta[c.id] = c; });
+  }
+
+  document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase();
+    updateVisibility();
+  });
+}
+
+// ── Legend ──
+function buildLegend(nodes) {
+  const counts = {};
+  nodes.forEach(n => {
+    const a = n.primary_area;
+    counts[a] = (counts[a] || 0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  const container = document.getElementById('legend');
+  sorted.forEach(([area, count]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML =
+      `<div class="legend-dot" style="background:${areaColor(area)}"></div>` +
+      `<div class="legend-label" title="${area}">${area}</div>` +
+      `<div class="legend-count">${count}</div>`;
+    item.addEventListener('click', () => {
+      if (hiddenAreas.has(area)) {
+        hiddenAreas.delete(area);
+        item.classList.remove('hidden');
+      } else {
+        hiddenAreas.add(area);
+        item.classList.add('hidden');
+      }
+      updateVisibility();
+    });
+    container.appendChild(item);
+  });
+}
+
+// ── Source filters ──
+function buildSourceFilters(nodes) {
+  const types = [...new Set(nodes.map(n => n.source_type))];
+  const container = document.getElementById('source-filters');
+  types.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'source-btn active';
+    btn.textContent = t === 'document_upload' ? 'Documentos' :
+                      t === 'noticia' ? 'Noticias' : t;
+    btn.dataset.type = t;
+    btn.addEventListener('click', () => {
+      if (hiddenSources.has(t)) {
+        hiddenSources.delete(t);
+        btn.classList.add('active');
+      } else {
+        hiddenSources.add(t);
+        btn.classList.remove('active');
+      }
+      updateVisibility();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ── Graph ──
+function buildGraph(nodes, links) {
+  const svg = d3.select('#graph');
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  // Zoom container
+  const g = svg.append('g');
+  svg.call(d3.zoom()
+    .scaleExtent([0.1, 8])
+    .on('zoom', e => g.attr('transform', e.transform))
+  );
+
+  // Scale for node radius
+  const extentChunks = d3.extent(nodes, d => d.chunk_count);
+  const rScale = d3.scaleSqrt()
+    .domain([extentChunks[0] || 1, extentChunks[1] || 1])
+    .range([4, 18]);
+
+  // Clusters layer (debajo de todo)
+  clustersLayer = g.insert('g', ':first-child').attr('class', 'clusters-layer');
+
+  // Links
+  const linkGroup = g.append('g');
+  const linkSel = linkGroup.selectAll('line')
+    .data(links)
+    .join('line')
+    .attr('class', 'link')
+    .attr('stroke', 'rgba(139,159,212,0.12)')
+    .attr('stroke-width', d => 0.5 + d.similarity * 2);
+
+  // Nodes
+  const nodeGroup = g.append('g');
+  const nodeSel = nodeGroup.selectAll('g')
+    .data(nodes, d => d.id)
+    .join('g')
+    .attr('class', 'node')
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragging)
+      .on('end', dragEnd)
+    );
+
+  nodeSel.append('circle')
+    .attr('r', d => rScale(d.chunk_count))
+    .attr('fill', d => areaColor(d.primary_area))
+    .attr('fill-opacity', 0.75)
+    .attr('stroke', d => areaColor(d.primary_area))
+    .attr('stroke-width', 1)
+    .attr('stroke-opacity', 0.4);
+
+  // Labels for larger nodes
+  nodeSel.filter(d => d.chunk_count >= 5)
+    .append('text')
+    .attr('class', 'node-label')
+    .attr('dy', d => rScale(d.chunk_count) + 12)
+    .text(d => truncate(d.label, 20));
+
+  // Tooltip
+  const tooltip = document.getElementById('tooltip');
+  nodeSel
+    .on('mouseenter', (e, d) => {
+      tooltip.innerHTML =
+        `<div class="tt-title">${d.label}</div>` +
+        `<div class="tt-row"><span>Area</span><span class="tt-val">${d.primary_area}</span></div>` +
+        `<div class="tt-row"><span>Importancia</span><span class="tt-val">${d.importance}</span></div>` +
+        `<div class="tt-row"><span>Chunks</span><span class="tt-val">${d.chunk_count}</span></div>` +
+        `<div class="tt-row"><span>Tipo</span><span class="tt-val">${d.source_type}</span></div>` +
+        (d.ingested_at ? `<div class="tt-row"><span>Fecha</span><span class="tt-val">${d.ingested_at.slice(0,10)}</span></div>` : '');
+      tooltip.classList.add('visible');
+      // Highlight connected
+      highlightConnected(d);
+    })
+    .on('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    })
+    .on('mouseleave', () => {
+      tooltip.classList.remove('visible');
+      resetHighlight();
+    })
+    .on('click', (e, d) => {
+      showDetail(d);
+    });
+
+  // Simulation
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(80).strength(d => d.similarity * 0.5))
+    .force('charge', d3.forceManyBody().strength(-120))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => rScale(d.chunk_count) + 4))
+    .on('tick', () => {
+      linkSel
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+      updateClusters();
+    });
+
+  // Store references for updates
+  window._graph = { nodeSel, linkSel, rScale, nodes, links };
+}
+
+// ── Highlight connected nodes ──
+function highlightConnected(d) {
+  const { nodeSel, linkSel } = window._graph;
+  const connectedIds = new Set();
+  linkSel.each(function(l) {
+    if (l.source.id === d.id) connectedIds.add(l.target.id);
+    if (l.target.id === d.id) connectedIds.add(l.source.id);
+  });
+  connectedIds.add(d.id);
+
+  nodeSel.select('circle')
+    .attr('fill-opacity', n => connectedIds.has(n.id) ? 0.95 : 0.15)
+    .attr('stroke-width', n => n.id === d.id ? 3 : connectedIds.has(n.id) ? 2 : 0.5);
+
+  linkSel
+    .attr('stroke', l =>
+      (l.source.id === d.id || l.target.id === d.id)
+        ? 'rgba(139,159,212,0.5)' : 'rgba(139,159,212,0.04)')
+    .attr('stroke-width', l =>
+      (l.source.id === d.id || l.target.id === d.id)
+        ? 1 + l.similarity * 3 : 0.3);
+}
+
+function resetHighlight() {
+  const { nodeSel, linkSel } = window._graph;
+  nodeSel.select('circle')
+    .attr('fill-opacity', 0.75)
+    .attr('stroke-width', 1);
+  linkSel
+    .attr('stroke', 'rgba(139,159,212,0.12)')
+    .attr('stroke-width', d => 0.5 + d.similarity * 2);
+}
+
+// ── Detail panel ──
+function showDetail(d) {
+  selectedNode = d;
+  const panel = document.getElementById('detail');
+  const connected = [];
+  window._graph.links.forEach(l => {
+    if (l.source.id === d.id) connected.push({ node: l.target, sim: l.similarity });
+    if (l.target.id === d.id) connected.push({ node: l.source, sim: l.similarity });
+  });
+  connected.sort((a, b) => b.sim - a.sim);
+
+  panel.innerHTML =
+    `<button class="detail-close" onclick="closeDetail()">&times;</button>` +
+    `<div class="detail-title">${d.label}</div>` +
+    `<div class="detail-meta">Area: <span>${d.primary_area}</span></div>` +
+    `<div class="detail-meta">Importancia: <span>${d.importance}</span> &middot; Chunks: <span>${d.chunk_count}</span> &middot; Tipo: <span>${d.source_type}</span></div>` +
+    (connected.length > 0
+      ? `<div class="detail-meta" style="width:100%;margin-top:4px">Conexiones (${connected.length}): ` +
+        connected.slice(0, 8).map(c =>
+          `<span style="color:${areaColor(c.node.primary_area)}">${truncate(c.node.label, 25)}</span> (${c.sim})`
+        ).join(', ') +
+        `</div>`
+      : '');
+  panel.classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('visible');
+  selectedNode = null;
+}
+
+// ── Visibility (filters + search) ──
+function updateVisibility() {
+  const { nodeSel, linkSel } = window._graph;
+
+  const isVisible = d => {
+    if (hiddenAreas.has(d.primary_area)) return false;
+    if (hiddenSources.has(d.source_type)) return false;
+    if (searchQuery && !d.label.toLowerCase().includes(searchQuery) &&
+        !d.id.toLowerCase().includes(searchQuery) &&
+        !d.primary_area.toLowerCase().includes(searchQuery)) return false;
+    return true;
+  };
+
+  visibleIds = new Set();
+  nodeSel.each(d => { if (isVisible(d)) visibleIds.add(d.id); });
+
+  nodeSel.style('display', d => visibleIds.has(d.id) ? null : 'none');
+  linkSel.style('display', d =>
+    visibleIds.has(d.source.id) && visibleIds.has(d.target.id) ? null : 'none');
+
+  updateClusters();
+
+  // Highlight search matches
+  if (searchQuery) {
+    nodeSel.select('circle')
+      .attr('fill-opacity', d => {
+        if (!visibleIds.has(d.id)) return 0.75;
+        return (d.label.toLowerCase().includes(searchQuery) ||
+                d.id.toLowerCase().includes(searchQuery)) ? 1 : 0.3;
+      });
+  } else {
+    nodeSel.select('circle').attr('fill-opacity', 0.75);
+  }
+}
+
+// ── Drag ──
+function dragStart(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragging(event, d) {
+  d.fx = event.x; d.fy = event.y;
+}
+function dragEnd(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+// ── Util ──
+function truncate(s, n) {
+  return s && s.length > n ? s.slice(0, n) + '...' : s || '';
+}
+
+// ── Resize ──
+window.addEventListener('resize', () => {
+  if (simulation) {
+    simulation.force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
+    simulation.alpha(0.3).restart();
+  }
+});
+
+// ── Clusters ──
+function toggleClusters() {
+  showClusters = !showClusters;
+  const btn = document.getElementById('cluster-toggle');
+  btn.classList.toggle('active', showClusters);
+  updateClusters();
+}
+
+function updateClusters() {
+  if (!clustersLayer) return;
+  if (!showClusters || !graphData || !graphData.clusters) {
+    clustersLayer.selectAll('*').remove();
+    return;
+  }
+
+  const { nodes } = window._graph;
+
+  // Agrupar posiciones de nodos visibles por cluster
+  const byCluster = {};
+  nodes.forEach(n => {
+    if (n.cluster_id == null || n.cluster_id === -1) return;
+    if (!visibleIds.has(n.id)) return;
+    if (n.x == null || n.y == null) return;
+    if (!byCluster[n.cluster_id]) byCluster[n.cluster_id] = [];
+    byCluster[n.cluster_id].push([n.x, n.y]);
+  });
+
+  const lineGen = d3.line().curve(d3.curveCatmullRomClosed);
+
+  Object.entries(byCluster).forEach(([cidStr, pts]) => {
+    if (pts.length < 3) return;
+    const cid = parseInt(cidStr, 10);
+    const meta = clusterMeta[cid];
+    if (!meta) return;
+
+    const hull = d3.polygonHull(pts);
+    if (!hull) return;
+
+    // Expandir el hull 30px desde el centroide
+    const cx = d3.mean(hull, p => p[0]);
+    const cy = d3.mean(hull, p => p[1]);
+    const expanded = hull.map(([x, y]) => {
+      const dx = x - cx, dy = y - cy;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      return [x + (dx / len) * 30, y + (dy / len) * 30];
+    });
+
+    const haloG = clustersLayer.append('g').attr('class', 'cluster-halo');
+
+    haloG.append('path')
+      .attr('d', lineGen(expanded))
+      .attr('fill', meta.color)
+      .attr('fill-opacity', 0.08)
+      .attr('stroke', meta.color)
+      .attr('stroke-opacity', 0.4)
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '4 3');
+
+    haloG.append('text')
+      .attr('class', 'cluster-label')
+      .attr('x', cx)
+      .attr('y', cy)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', meta.color)
+      .attr('fill-opacity', 0.65)
+      .text(meta.label);
+  });
+}
+</script>
+</body>
+</html>

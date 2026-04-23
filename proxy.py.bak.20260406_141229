@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""
+Proxy frontend para Generador de Informes — Prospecta.
+Sirve form.html y reenvía solicitudes al webhook de n8n.
+"""
+import json
+import os
+import pathlib
+import urllib.request
+import urllib.error
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+PORT = int(os.environ.get("PORT", 8090))
+N8N_WEBHOOK = "http://10.58.114.31:5678/webhook/generar-informe"
+N8N_CHAT_WEBHOOK = "http://10.58.114.31:5678/webhook/chat-prospecta/chat"
+BASE_DIR = pathlib.Path(__file__).parent
+
+
+class Handler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        if self.path in ("/", "/index.html"):
+            self._serve_file("form.html", "text/html; charset=utf-8")
+        elif self.path == "/health":
+            self._json(200, {"ok": True})
+        elif self.path == "/api/informes":
+            self._handle_list_informes()
+        elif self.path.startswith("/api/download"):
+            self._handle_download()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_POST(self):
+        if self.path == "/api/generar":
+            self._handle_generar()
+        elif self.path == "/api/chat":
+            self._handle_chat()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._cors_headers()
+        self.end_headers()
+
+    # ------------------------------------------------------------------ #
+
+    def _serve_file(self, filename, content_type):
+        filepath = BASE_DIR / filename
+        if not filepath.exists():
+            self.send_response(404)
+            self.end_headers()
+            return
+        content = filepath.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        self.wfile.write(content)
+
+    def _handle_generar(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length)
+
+        try:
+            req = urllib.request.Request(
+                N8N_WEBHOOK,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                response_body = resp.read()
+                status = resp.status
+        except urllib.error.HTTPError as e:
+            response_body = json.dumps({"error": f"n8n error {e.code}"}).encode()
+            status = 502
+        except Exception as e:
+            response_body = json.dumps({"error": str(e)}).encode()
+            status = 502
+
+        self.send_response(status)
+        self._cors_headers()
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response_body)
+
+    def _handle_chat(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length)
+
+        try:
+            req = urllib.request.Request(
+                N8N_CHAT_WEBHOOK,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                response_body = resp.read()
+                status = resp.status
+        except urllib.error.HTTPError as e:
+            response_body = json.dumps({"error": f"n8n error {e.code}"}).encode()
+            status = 502
+        except Exception as e:
+            response_body = json.dumps({"error": str(e)}).encode()
+            status = 502
+
+        self.send_response(status)
+        self._cors_headers()
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(response_body)
+
+    def _handle_download(self):
+        """Descarga un PDF desde Nextcloud y lo sirve al browser."""
+        import base64
+        from urllib.parse import urlparse, parse_qs, quote
+        parsed = urlparse(self.path)
+        params = parse_qs(parsed.query)
+        nombre = params.get("nombre", [None])[0]
+        if not nombre or not nombre.lower().endswith(".pdf"):
+            self.send_response(400)
+            self.end_headers()
+            return
+
+        nc_url  = os.environ.get("NEXTCLOUD_URL",  "http://10.58.114.31:18080")
+        nc_user = os.environ.get("NEXTCLOUD_USER", "prospecta")
+        nc_pass = os.environ.get("NEXTCLOUD_PASS", "")
+        credentials = base64.b64encode(f"{nc_user}:{nc_pass}".encode()).decode()
+
+        dav_url = f"{nc_url}/remote.php/dav/files/{nc_user}/informes/{quote(nombre)}"
+        try:
+            req = urllib.request.Request(
+                dav_url,
+                headers={"Authorization": f"Basic {credentials}"},
+                method="GET",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                pdf_data = resp.read()
+        except Exception as e:
+            self._json(502, {"error": str(e)})
+            return
+
+        safe_name = nombre.replace('"', '')
+        self.send_response(200)
+        self._cors_headers()
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Length", str(len(pdf_data)))
+        self.send_header("Content-Disposition", f'attachment; filename="{safe_name}"')
+        self.end_headers()
+        self.wfile.write(pdf_data)
+
+    def _handle_list_informes(self):
+        """Lista PDFs en Nextcloud /informes/ via WebDAV PROPFIND."""
+        import base64
+        import re as _re
+        nc_url  = os.environ.get("NEXTCLOUD_URL",  "http://10.58.114.31:18080")
+        nc_user = os.environ.get("NEXTCLOUD_USER", "prospecta")
+        nc_pass = os.environ.get("NEXTCLOUD_PASS", "")
+
+        dav_url = f"{nc_url}/remote.php/dav/files/{nc_user}/informes/"
+        credentials = base64.b64encode(f"{nc_user}:{nc_pass}".encode()).decode()
+
+        propfind_body = b'''<?xml version="1.0"?>
+<d:propfind xmlns:d="DAV:">
+  <d:prop><d:displayname/><d:getlastmodified/><d:getcontentlength/></d:prop>
+</d:propfind>'''
+
+        try:
+            req = urllib.request.Request(
+                dav_url, data=propfind_body, method="PROPFIND",
+                headers={
+                    "Authorization": f"Basic {credentials}",
+                    "Depth": "1",
+                    "Content-Type": "application/xml"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                xml_data = resp.read().decode("utf-8")
+
+            hrefs = _re.findall(r'<d:href>([^<]+\.pdf)</d:href>', xml_data, _re.IGNORECASE)
+            dates = _re.findall(r'<d:getlastmodified>([^<]+)</d:getlastmodified>', xml_data)
+            sizes = _re.findall(r'<d:getcontentlength>([^<]+)</d:getcontentlength>', xml_data)
+
+            informes = []
+            for i, href in enumerate(hrefs):
+                name = href.split("/")[-1]
+                if not name.lower().endswith(".pdf"):
+                    continue
+                informes.append({
+                    "nombre": name,
+                    "fecha": dates[i] if i < len(dates) else "",
+                    "tamano": int(sizes[i]) if i < len(sizes) else 0,
+                    "url": f"{nc_url}/index.php/apps/files/?dir=/informes&openfile={name}"
+                })
+
+            informes.sort(key=lambda x: x["fecha"], reverse=True)
+            self._json(200, {"informes": informes[:6]})
+        except Exception as e:
+            self._json(200, {"informes": [], "error": str(e)})
+
+    def _json(self, status, data):
+        body = json.dumps(data).encode()
+        self.send_response(status)
+        self._cors_headers()
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _cors_headers(self):
+        origin = self.headers.get("Origin", "")
+        allowed = f"http://10.58.114.31:{PORT}"
+        if origin == allowed:
+            self.send_header("Access-Control-Allow-Origin", allowed)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def log_message(self, fmt, *args):
+        import sys, datetime
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{ts}] {fmt % args}", file=sys.stderr, flush=True)
+
+
+if __name__ == "__main__":
+    server = HTTPServer(("0.0.0.0", PORT), Handler)
+    print(f"Frontend disponible en http://10.58.114.31:{PORT}", flush=True)
+    server.serve_forever()
