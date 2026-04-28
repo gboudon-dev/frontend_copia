@@ -12,7 +12,7 @@ import urllib.error
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-PORT = int(os.environ.get("PORT", 8090))
+PORT = int(os.environ.get("PORT", 9000))
 N8N_WEBHOOK = "http://10.58.114.31:5678/webhook/generar-informe"
 N8N_CHAT_WEBHOOK = "http://10.58.114.31:5678/webhook/chat-prospecta/chat"
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://10.58.114.33:8093")
