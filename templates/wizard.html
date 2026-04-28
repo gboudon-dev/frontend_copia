@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospecta v2 — Generador de Informes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  </noscript>
+  <link rel="stylesheet" href="/static/css/wizard.css">
+</head>
+<body>
+
+<header>
+  <h1>Prospecta</h1>
+  <span class="version">Generador v2</span>
+</header>
+
+<div class="stepper">
+  <div class="s active" id="stepper-1"><span class="num">1</span> Login</div>
+  <div class="s" id="stepper-2"><span class="num">2</span> Tema</div>
+  <div class="s" id="stepper-3"><span class="num">3</span> Plan</div>
+  <div class="s" id="stepper-4"><span class="num">4</span> Generar</div>
+</div>
+
+<main>
+  <!-- Step 1: Login -->
+  <div id="step-login" class="step active">
+    <h2>Iniciar sesion</h2>
+    <div class="field">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" placeholder="nacho" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Contrasena</label>
+      <input type="password" id="password" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <div id="login-error" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="login()" id="btn-login">Entrar</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Tema -->
+  <div id="step-tema" class="step">
+    <h2>Describe el informe</h2>
+    <div class="field">
+      <label for="prompt">Objetivo del informe <span style="color:var(--text-muted);font-size:0.75rem;">(Ctrl+Enter para continuar)</span></label>
+      <textarea id="prompt" rows="4" placeholder="Ej: Informe de tendencias de capital humano en Region de Coquimbo para el CPR, con foco en mineria, agricultura y turismo"></textarea>
+    </div>
+    <div class="field">
+      <label for="contexto">Contexto adicional (opcional)</label>
+      <textarea id="contexto" rows="3" placeholder="Ej: Preguntas de panelistas, prioridades especificas, datos complementarios..."></textarea>
+    </div>
+    <div id="tema-error" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="submitTema()" id="btn-plan">Generar plan</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Plan -->
+  <div id="step-plan" class="step">
+    <h2>Plan del informe</h2>
+
+    <!-- Título editable -->
+    <div class="plan-editor-title" id="plan-titulo-row">
+      <span class="titulo-text" id="plan-titulo-display"></span>
+      <button class="sec-btn sec-btn-edit" onclick="editTitulo()">✎ Editar</button>
+    </div>
+
+    <div id="plan-sections"></div>
+    <button class="add-section-btn" onclick="addSection()">+ Agregar sección</button>
+
+    <div id="plan-errors" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="approvePlan()">Aprobar y generar →</button>
+      <button class="btn btn-secondary" onclick="goToStep(2)">← Modificar tema</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Generacion -->
+  <div id="step-generate" class="step">
+    <h2 id="generate-title">Generando informe...</h2>
+    <div class="progress-bar"><div class="fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="status-text" id="status-text">Iniciando...</div>
+    <div id="progress-sections"></div>
+    <div id="result-area" style="display:none; margin-top: 1.5rem;">
+      <div id="metrics-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.2rem;"></div>
+      <div class="btn-row">
+        <a id="btn-download" class="btn btn-primary" href="#" style="display:none; text-decoration:none">↓ Descargar PDF</a>
+        <button class="btn btn-secondary" onclick="newReport()">Nuevo informe</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/static/js/wizard.js"></script>
+</body>
+</html>

@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospecta v2 — Generador de Informes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  </noscript>
+  <style>
+    :root {
+      --periwinkle: #8B9FD4;
+      --periwinkle-dark: #6B80B4;
+      --durazno: #F4A261;
+      --bg: #0D1117;
+      --bg-card: #161B22;
+      --bg-input: #1C2128;
+      --text: #C9D1D9;
+      --text-muted: #8895A8;
+      --text-bright: #FFFFFF;
+      --green: #7FB99A;
+      --red: #C97B8A;
+      --radius: 8px;
+      --font: 'Inter', -apple-system, sans-serif;
+      --font-display: 'Sora', sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid #21262D;
+    }
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--periwinkle);
+    }
+    header .version {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .stepper {
+      display: flex;
+      gap: 0;
+      margin: 2rem 0 1rem;
+      width: 100%;
+      max-width: 700px;
+      justify-content: center;
+    }
+    .stepper .s {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    .stepper .s.active { color: var(--periwinkle); border-color: var(--periwinkle); }
+    .stepper .s.done { color: var(--green); border-color: var(--green); }
+    .stepper .s .num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600;
+      background: var(--bg-card);
+      border: 1px solid currentColor;
+    }
+    main {
+      width: 100%;
+      max-width: 700px;
+      padding: 0 1.5rem 3rem;
+    }
+    .step { display: none; }
+    .step.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { font-family: var(--font-display); font-size: 1.1rem; color: var(--text-bright); margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    input, textarea {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      background: var(--bg-input);
+      border: 1px solid #30363D;
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--periwinkle); }
+    textarea { resize: vertical; min-height: 100px; }
+    .field { margin-bottom: 1.2rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.6rem;
+      border: none; border-radius: var(--radius);
+      font-family: var(--font); font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      min-height: 40px;
+    }
+    .btn-primary { background: var(--periwinkle); color: var(--bg); }
+    .btn-primary:hover { background: var(--periwinkle-dark); }
+    .btn-secondary { background: transparent; color: var(--periwinkle); border: 1px solid var(--periwinkle); }
+    .btn-secondary:hover { background: rgba(139,159,212,0.1); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .error { color: var(--red); font-size: 0.85rem; margin-top: 0.5rem; }
+
+    /* Plan cards */
+    .plan-card {
+      background: var(--bg-card);
+      border: 1px solid #30363D;
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+    }
+    .plan-card h3 { font-size: 0.95rem; color: var(--text-bright); margin-bottom: 0.5rem; }
+    .plan-card .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+    .chip {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(139,159,212,0.15);
+      color: var(--periwinkle);
+    }
+    .plan-card .query { font-size: 0.8rem; color: var(--text-muted); }
+    .plan-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--durazno);
+      margin-bottom: 1rem;
+    }
+
+    /* Plan Editor */
+    .plan-editor-title {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .plan-editor-title .titulo-text {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--durazno);
+      flex: 1;
+    }
+    .plan-editor-title input {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--durazno);
+      background: var(--bg-input);
+      border: 1px solid var(--durazno);
+      border-radius: var(--radius);
+      padding: 0.3rem 0.6rem;
+      flex: 1;
+    }
+    .sec-card {
+      background: var(--bg-card);
+      border: 1px solid #30363D;
+      border-radius: var(--radius);
+      padding: 0.9rem;
+      margin-bottom: 0.5rem;
+      transition: border-color 0.2s;
+    }
+    .sec-card.dragging { opacity: 0.4; }
+    .sec-card.drag-over { border-color: var(--periwinkle); }
+    .sec-card-header {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+    }
+    .sec-drag-handle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: grab;
+      user-select: none;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .sec-drag-handle:active { cursor: grabbing; }
+    .sec-body { flex: 1; min-width: 0; }
+    .sec-title-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 0.5rem; margin-bottom: 0.3rem;
+    }
+    .sec-title {
+      color: var(--text-bright);
+      font-weight: 600;
+      font-size: 0.88rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .sec-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+    .sec-btn {
+      background: transparent;
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: var(--font);
+      font-weight: 500;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .sec-btn-edit { border: 1px solid #30363D; color: var(--periwinkle); }
+    .sec-btn-edit:hover { border-color: var(--periwinkle); background: rgba(139,159,212,0.1); }
+    .sec-btn-delete { border: 1px solid var(--red); color: var(--red); }
+    .sec-btn-delete:hover { background: rgba(201,123,138,0.1); }
+    .sec-desc {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin-bottom: 0.5rem;
+    }
+    .sec-desc-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--periwinkle);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 0.4rem;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      resize: vertical;
+      margin-bottom: 0.5rem;
+    }
+    /* Plan v4: thesis, claim, metric tags */
+    .plan-thesis {
+      margin-bottom: 1rem;
+    }
+    .plan-thesis label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+    .plan-thesis textarea {
+      min-height: 70px;
+      font-size: 0.85rem;
+      color: var(--text);
+      border-color: #30363D;
+    }
+    .section-claim {
+      margin-bottom: 0.4rem;
+    }
+    .section-claim input {
+      font-size: 0.82rem;
+      padding: 0.35rem 0.6rem;
+      color: var(--text-muted);
+      border-color: #30363D;
+    }
+    .section-claim input:focus {
+      border-color: var(--periwinkle);
+      color: var(--text);
+    }
+    .section-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-bottom: 0.4rem;
+    }
+    .metric-tag {
+      font-size: 0.7rem;
+      padding: 1px 7px;
+      border-radius: 4px;
+      background: rgba(127,185,154,0.12);
+      color: var(--green);
+      font-family: monospace;
+    }
+    .add-section-btn {
+      border: 1px dashed #30363D;
+      border-radius: var(--radius);
+      padding: 0.65rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-bottom: 1.2rem;
+      transition: all 0.2s;
+      background: transparent;
+      width: 100%;
+      font-family: var(--font);
+    }
+    .add-section-btn:hover { border-color: var(--periwinkle); color: var(--periwinkle); }
+
+    /* Progress */
+    .progress-item {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #21262D;
+    }
+    .progress-item .icon { font-size: 1rem; width: 24px; text-align: center; }
+    .progress-item .label { flex: 1; font-size: 0.9rem; }
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--bg-input);
+      border-radius: 2px;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      background: var(--periwinkle);
+      transition: width 0.5s;
+      border-radius: 2px;
+    }
+    .status-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .result-actions { margin-top: 1.5rem; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--text-muted); border-top-color: var(--periwinkle); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Métricas post-generación */
+    .metric-card {
+      background: var(--bg-input);
+      border-radius: var(--radius);
+      padding: 0.7rem 0.9rem;
+    }
+    .metric-card .metric-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+    .metric-card .metric-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .metric-card .metric-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Paso clarificacion */
+    #step-clarify .clarify-q {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    #step-clarify .clarify-q span {
+      font-weight: 500;
+    }
+    #step-clarify .clarify-q input {
+      padding: 0.6rem;
+      border: 1px solid var(--border, #ccc);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Prospecta</h1>
+  <span class="version">Generador v2</span>
+</header>
+
+<div class="stepper">
+  <div class="s active" id="stepper-1"><span class="num">1</span> Login</div>
+  <div class="s" id="stepper-2"><span class="num">2</span> Tema</div>
+  <div class="s" id="stepper-3"><span class="num">3</span> Plan</div>
+  <div class="s" id="stepper-4"><span class="num">4</span> Generar</div>
+</div>
+
+<main>
+  <!-- Step 1: Login -->
+  <div id="step-login" class="step active">
+    <h2>Iniciar sesion</h2>
+    <div class="field">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" placeholder="nacho" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Contrasena</label>
+      <input type="password" id="password" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <div id="login-error" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="login()" id="btn-login">Entrar</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Tema -->
+  <div id="step-tema" class="step">
+    <h2>Describe el informe</h2>
+    <div class="field">
+      <label for="prompt">Objetivo del informe <span style="color:var(--text-muted);font-size:0.75rem;">(Ctrl+Enter para continuar)</span></label>
+      <textarea id="prompt" rows="4" placeholder="Ej: Informe de tendencias de capital humano en Region de Coquimbo para el CPR, con foco en mineria, agricultura y turismo"></textarea>
+    </div>
+    <div class="field">
+      <label for="contexto">Contexto adicional (opcional)</label>
+      <textarea id="contexto" rows="3" placeholder="Ej: Preguntas de panelistas, prioridades especificas, datos complementarios..."></textarea>
+    </div>
+    <div id="tema-error" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="submitTema()" id="btn-plan">Generar plan</button>
+    </div>
+  </div>
+
+  <!-- Step 2.5: Clarificacion (intermedio condicional) -->
+  <div id="step-clarify" class="step">
+    <h2 id="step-clarify-title">Antes de planear</h2>
+    <p style="color:var(--text-muted);margin-bottom:1rem;">Necesitamos precisar algunos detalles para que el informe sea útil.</p>
+    <form id="clarify-form" onsubmit="submitClarification(event); return false;">
+      <div id="clarify-questions"></div>
+      <div id="clarify-error" class="error"></div>
+      <div class="btn-row">
+        <button type="submit" class="btn btn-primary" id="btn-clarify">Continuar</button>
+        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Volver</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Step 3: Plan -->
+  <div id="step-plan" class="step">
+    <h2>Plan del informe</h2>
+
+    <!-- Título editable -->
+    <div class="plan-editor-title" id="plan-titulo-row">
+      <span class="titulo-text" id="plan-titulo-display"></span>
+      <button class="sec-btn sec-btn-edit" onclick="editTitulo()">✎ Editar</button>
+    </div>
+
+    <div id="plan-sections"></div>
+    <button class="add-section-btn" onclick="addSection()">+ Agregar sección</button>
+
+    <div id="plan-errors" class="error"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="approvePlan()">Aprobar y generar →</button>
+      <button class="btn btn-secondary" onclick="goToStep(2)">← Modificar tema</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Generacion -->
+  <div id="step-generate" class="step">
+    <h2 id="generate-title">Generando informe...</h2>
+    <div class="progress-bar"><div class="fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="status-text" id="status-text">Iniciando...</div>
+    <div id="progress-sections"></div>
+    <div id="result-area" style="display:none; margin-top: 1.5rem;">
+      <div id="metrics-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.2rem;"></div>
+      <div class="btn-row">
+        <a id="btn-download" class="btn btn-primary" href="#" style="display:none; text-decoration:none">↓ Descargar PDF</a>
+        <button class="btn btn-secondary" onclick="newReport()">Nuevo informe</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = '/api/v4';
+let token = '';
+let currentPlan = null;
+let currentJobId = '';
+let pollInterval = null;
+let _pollFailures = 0;
+let pendingClarifyContext = null;
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const resp = await fetch(API + path, { ...options, headers });
+  return resp;
+}
+
+function goToStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(['','step-login','step-tema','step-plan','step-generate'][n]).classList.add('active');
+  document.querySelectorAll('.stepper .s').forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i + 1 === n) s.classList.add('active');
+    else if (i + 1 < n) s.classList.add('done');
+  });
+}
+
+// Paso intermedio de clarificacion — activa step-clarify sin alterar el stepper visual
+// (el stepper permanece en paso 2 "Tema" porque es un sub-paso condicional)
+function goToClarify() {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-clarify').classList.add('active');
+  // Mantener stepper en estado "paso 2 activo" (igual que al llegar desde login)
+  document.querySelectorAll('.stepper .s').forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i === 0) s.classList.add('done');   // paso 1 Login: completado
+    if (i === 1) s.classList.add('active'); // paso 2 Tema: activo (clarify es sub-paso)
+  });
+}
+
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('btn-login');
+  errEl.textContent = '';
+
+  if (!username || !password) { errEl.textContent = 'Ingresa usuario y contrasena'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Entrando...';
+  try {
+    const resp = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    if (!resp.ok) { errEl.textContent = 'Credenciales invalidas'; return; }
+    const data = await resp.json();
+    token = data.token;
+    goToStep(2);
+  } catch (e) {
+    errEl.textContent = 'Error de conexion: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Entrar';
+  }
+}
+
+// Funcion compartida: llama a /plan y enruta segun status
+// errEl: elemento donde mostrar errores si la respuesta no es ok
+async function _requestPlan(prompt, contexto, errEl) {
+  const resp = await apiFetch('/plan', {
+    method: 'POST',
+    body: JSON.stringify({ prompt, contexto, region: '', period: '', coverage_queries: [] }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    if (errEl) errEl.textContent = err.detail || 'Error generando plan';
+    return null;
+  }
+  const data = await resp.json();
+
+  if (data.status === 'needs_clarification') {
+    showClarificationStep(data.questions || [], { prompt, contexto });
+    return null; // navegacion ya fue realizada
+  }
+
+  if (data.status === 'ready') {
+    if (!data.plan) {
+      if (errEl) errEl.textContent = 'El servidor no devolvió un plan válido.';
+      return null;
+    }
+    currentPlan = data.plan;
+    renderPlan(currentPlan);
+    goToStep(3);
+    return null; // navegacion ya fue realizada
+  }
+
+  // Fallback de compatibilidad: respuesta sin campo status (v3 / legado)
+  if (data.plan) {
+    currentPlan = data.plan;
+    renderPlan(currentPlan);
+    goToStep(3);
+    return null;
+  }
+
+  if (errEl) errEl.textContent = 'Respuesta inesperada del servidor';
+  return null;
+}
+
+async function submitTema() {
+  const prompt = document.getElementById('prompt').value.trim();
+  const contexto = document.getElementById('contexto').value.trim();
+  const errEl = document.getElementById('tema-error');
+  const btn = document.getElementById('btn-plan');
+  errEl.textContent = '';
+
+  if (!prompt) { errEl.textContent = 'Describe el objetivo del informe'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Planificando...';
+
+  try {
+    await _requestPlan(prompt, contexto, errEl);
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar plan';
+  }
+}
+
+function showClarificationStep(questions, ctx) {
+  pendingClarifyContext = ctx;
+  const container = document.getElementById('clarify-questions');
+  container.innerHTML = '';
+  questions.forEach((q, i) => {
+    const label = document.createElement('label');
+    label.className = 'clarify-q';
+    label.innerHTML = `<span>${esc(q)}</span><input type="text" name="clarify-${i}" required autocomplete="off" />`;
+    container.appendChild(label);
+  });
+  document.getElementById('clarify-error').textContent = '';
+  const titleEl = document.getElementById('step-clarify-title');
+  if (titleEl) {
+    titleEl.textContent = questions.length === 1
+      ? 'Una pregunta más antes de planear'
+      : 'Algunas preguntas antes de planear';
+  }
+  goToClarify();
+  // Focus al primer input
+  const firstInput = container.querySelector('input');
+  if (firstInput) setTimeout(() => firstInput.focus(), 80);
+}
+
+async function submitClarification(ev) {
+  ev.preventDefault();
+  const errEl = document.getElementById('clarify-error');
+  const btn = document.getElementById('btn-clarify');
+  errEl.textContent = '';
+
+  const ctx = pendingClarifyContext;
+  if (!ctx) { errEl.textContent = 'Contexto perdido — volvé al paso anterior'; return; }
+
+  // Recolectar preguntas y respuestas para construir contexto enriquecido
+  const fields = document.querySelectorAll('#clarify-questions .clarify-q');
+  const answers = [];
+  fields.forEach(field => {
+    const labelSpan = field.querySelector('span');
+    const input = field.querySelector('input');
+    const q = labelSpan ? labelSpan.textContent.trim() : '';
+    const a = input ? input.value.trim() : '';
+    if (q || a) answers.push(q + (a ? ' ' + a : ''));
+  });
+
+  const mergedContexto = (ctx.contexto ? ctx.contexto + '\n' : '') + answers.join('\n');
+
+  // Actualizar textarea de contexto para que sea visible si el usuario vuelve
+  document.getElementById('contexto').value = mergedContexto;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Procesando...';
+
+  try {
+    await _requestPlan(ctx.prompt, mergedContexto, errEl);
+    // Si _requestPlan llama a showClarificationStep de nuevo,
+    // pendingClarifyContext se actualiza automaticamente con el nuevo ctx
+    if (document.getElementById('step-clarify').classList.contains('active')) {
+      // Seguimos en clarify: actualizar el ctx acumulado para la siguiente iteracion
+      pendingClarifyContext = { prompt: ctx.prompt, contexto: mergedContexto };
+    }
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Continuar';
+  }
+}
+
+function renderPlan(plan) {
+  // Título
+  document.getElementById('plan-titulo-display').textContent = plan.titulo_sugerido || 'Sin titulo';
+  const inp = document.getElementById('plan-titulo-input');
+  if (inp) inp.remove();
+
+  // Thesis v4 (puede ser undefined en planes legacy — manejar con gracia)
+  let thesisSection = document.getElementById('plan-thesis-section');
+  if (thesisSection) thesisSection.remove();
+  thesisSection = document.createElement('section');
+  thesisSection.id = 'plan-thesis-section';
+  thesisSection.className = 'plan-thesis';
+  thesisSection.innerHTML = `
+    <label for="plan-thesis-input">Hipótesis del informe</label>
+    <textarea id="plan-thesis-input" rows="3" placeholder="Hipótesis verificable del informe (60-100 palabras)">${esc(plan.thesis || '')}</textarea>
+  `;
+  thesisSection.querySelector('textarea').addEventListener('blur', function() {
+    currentPlan.thesis = this.value.trim();
+  });
+
+  const planSectionsEl = document.getElementById('plan-sections');
+  planSectionsEl.parentNode.insertBefore(thesisSection, planSectionsEl);
+
+  const container = planSectionsEl;
+  container.innerHTML = '';
+  (plan.secciones || []).forEach((sec, i) => {
+    container.appendChild(buildSecCard(sec, i));
+  });
+  setupDragDrop(container);
+}
+
+function buildSecCard(sec, idx) {
+  const card = document.createElement('div');
+  card.className = 'sec-card';
+  card.draggable = true;
+  card.dataset.idx = idx;
+
+  const desc = sec.contexto_adicional || '';
+  const bloques = (sec.bloques || []).map(b => `<span class="chip">${esc(b)}</span>`).join('');
+
+  // Claim v4 (puede ser undefined en planes legacy)
+  const claimHtml = `
+    <div class="section-claim">
+      <input type="text" placeholder="Afirmación central de esta sección" value="${esc(sec.claim || '')}" data-field="claim" />
+    </div>
+  `;
+
+  // Metric tags v4 (puede ser undefined/vacío en planes legacy)
+  const metrics = sec.factbook_metrics_relevant;
+  const metricsHtml = (Array.isArray(metrics) && metrics.length > 0)
+    ? `<div class="section-metrics">${metrics.map(m => `<span class="metric-tag">${esc(m)}</span>`).join('')}</div>`
+    : '';
+
+  card.innerHTML = `
+    <div class="sec-card-header">
+      <span class="sec-drag-handle">⠿</span>
+      <div class="sec-body">
+        <div class="sec-title-row">
+          <span class="sec-title">${idx + 1}. ${esc(sec.titulo || 'Sin titulo')}</span>
+          <div class="sec-actions">
+            <button class="sec-btn sec-btn-edit" onclick="editSecDesc(this)">✎ Editar</button>
+            <button class="sec-btn sec-btn-delete" onclick="deleteSec(this)">✕</button>
+          </div>
+        </div>
+        ${claimHtml}
+        ${metricsHtml}
+        ${desc ? `<div class="sec-desc">${esc(desc)}</div>` : ''}
+        <div class="chips">${bloques}</div>
+      </div>
+    </div>
+  `;
+
+  // Blur listener para sincronizar claim con currentPlan
+  const claimInput = card.querySelector('[data-field="claim"]');
+  if (claimInput) {
+    claimInput.addEventListener('blur', function() {
+      if (currentPlan && currentPlan.secciones && currentPlan.secciones[idx] !== undefined) {
+        currentPlan.secciones[idx].claim = this.value.trim();
+      }
+    });
+  }
+
+  return card;
+}
+
+function editTitulo() {
+  const display = document.getElementById('plan-titulo-display');
+  const row = document.getElementById('plan-titulo-row');
+  const current = display.textContent;
+  display.style.display = 'none';
+
+  const inp = document.createElement('input');
+  inp.id = 'plan-titulo-input';
+  inp.value = current;
+  inp.onblur = () => {
+    currentPlan.titulo_sugerido = inp.value.trim() || current;
+    display.textContent = currentPlan.titulo_sugerido;
+    display.style.display = '';
+    inp.remove();
+  };
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+  row.insertBefore(inp, row.querySelector('button'));
+  inp.focus();
+}
+
+function editSecDesc(btn) {
+  const body = btn.closest('.sec-body');
+  const descEl = body.querySelector('.sec-desc');
+  const current = descEl ? descEl.textContent : '';
+  if (descEl) descEl.remove();
+
+  const ta = document.createElement('textarea');
+  ta.className = 'sec-desc-input';
+  ta.value = current;
+  ta.rows = 3;
+  ta.onblur = () => {
+    syncPlanFromDOM();
+    const newDesc = document.createElement('div');
+    newDesc.className = 'sec-desc';
+    newDesc.textContent = ta.value;
+    ta.replaceWith(newDesc);
+  };
+  const chips = body.querySelector('.chips');
+  body.insertBefore(ta, chips);
+  ta.focus();
+}
+
+function deleteSec(btn) {
+  if (!confirm('¿Eliminar esta sección?')) return;
+  const card = btn.closest('.sec-card');
+  const idx = parseInt(card.dataset.idx);
+  currentPlan.secciones.splice(idx, 1);
+  card.remove();
+  renumberCards();
+}
+
+function addSection() {
+  const newSec = {
+    titulo: 'Nueva sección',
+    contexto_adicional: '',
+    bloques: [],
+  };
+  currentPlan.secciones.push(newSec);
+  const container = document.getElementById('plan-sections');
+  const idx = currentPlan.secciones.length - 1;
+  const card = buildSecCard(newSec, idx);
+  container.appendChild(card);
+  setupDragDrop(container);
+  card.querySelector('.sec-btn-edit').click();
+}
+
+function renumberCards() {
+  document.querySelectorAll('.sec-card').forEach((card, i) => {
+    card.dataset.idx = i;
+    const titleEl = card.querySelector('.sec-title');
+    if (titleEl) {
+      titleEl.textContent = `${i + 1}. ${currentPlan.secciones[i]?.titulo || ''}`;
+    }
+  });
+}
+
+function syncPlanFromDOM() {
+  document.querySelectorAll('.sec-card').forEach((card, i) => {
+    const descEl = card.querySelector('.sec-desc');
+    const taEl = card.querySelector('.sec-desc-input');
+    if (taEl && currentPlan.secciones[i]) {
+      currentPlan.secciones[i].contexto_adicional = taEl.value;
+    } else if (descEl && currentPlan.secciones[i]) {
+      currentPlan.secciones[i].contexto_adicional = descEl.textContent;
+    }
+  });
+}
+
+// --- Drag & Drop (event delegation — listeners on container, not on each card) ---
+let _dragSrcCard = null;
+
+function setupDragDrop(container) {
+  if (container.dataset.ddBound) return;
+  container.dataset.ddBound = 'true';
+
+  container.addEventListener('dragstart', e => {
+    const card = e.target.closest('.sec-card');
+    if (!card) return;
+    _dragSrcCard = card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  container.addEventListener('dragend', e => {
+    const card = e.target.closest('.sec-card');
+    if (card) card.classList.remove('dragging');
+    container.querySelectorAll('.sec-card').forEach(c => c.classList.remove('drag-over'));
+  });
+
+  container.addEventListener('dragover', e => {
+    e.preventDefault();
+    const card = e.target.closest('.sec-card');
+    if (!card || card === _dragSrcCard) return;
+    e.dataTransfer.dropEffect = 'move';
+    container.querySelectorAll('.sec-card').forEach(c => c.classList.remove('drag-over'));
+    card.classList.add('drag-over');
+  });
+
+  container.addEventListener('drop', e => {
+    e.preventDefault();
+    const card = e.target.closest('.sec-card');
+    if (!_dragSrcCard || !card || _dragSrcCard === card) return;
+    const cards = [...container.querySelectorAll('.sec-card')];
+    const srcIdx = cards.indexOf(_dragSrcCard);
+    const dstIdx = cards.indexOf(card);
+    if (srcIdx < dstIdx) {
+      card.after(_dragSrcCard);
+    } else {
+      card.before(_dragSrcCard);
+    }
+    const [moved] = currentPlan.secciones.splice(srcIdx, 1);
+    currentPlan.secciones.splice(dstIdx, 0, moved);
+    renumberCards();
+    card.classList.remove('drag-over');
+  });
+}
+
+async function approvePlan() {
+  if (!currentPlan) return;
+
+  // Capturar thesis aunque el usuario no haya desfocado el textarea
+  const thesisEl = document.getElementById('plan-thesis-input');
+  if (thesisEl) currentPlan.thesis = thesisEl.value.trim();
+
+  // Sincronizar ediciones en curso antes de generar
+  syncPlanFromDOM();
+
+  goToStep(4);
+  const sections = currentPlan.secciones || [];
+  const container = document.getElementById('progress-sections');
+  container.innerHTML = '';
+  sections.forEach((sec, i) => {
+    const item = document.createElement('div');
+    item.className = 'progress-item';
+    item.id = 'progress-sec-' + i;
+    item.innerHTML = `
+      <span class="icon">&#9711;</span>
+      <span class="label">${sec.titulo}</span>
+    `;
+    container.appendChild(item);
+  });
+
+  try {
+    const resp = await apiFetch('/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        plan: currentPlan,
+        report_goal: document.getElementById('prompt').value.trim(),
+      }),
+    });
+    if (!resp.ok) {
+      document.getElementById('status-text').textContent = 'Error iniciando generacion';
+      return;
+    }
+    const data = await resp.json();
+    currentJobId = data.job_id;
+    _pollFailures = 0;
+    pollInterval = setInterval(pollStatus, 3000);
+  } catch (e) {
+    document.getElementById('status-text').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function pollStatus() {
+  if (!currentJobId) return;
+
+  try {
+    const resp = await apiFetch('/status/' + currentJobId);
+    if (!resp.ok) return;
+    const data = await resp.json();
+
+    document.getElementById('status-text').textContent = data.progress;
+
+    const total = data.sections_total || 1;
+    const done = data.sections_done || 0;
+    const pct = data.status === 'completed' ? 100 : Math.round((done / total) * 90);
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    // Actualizar iconos de secciones
+    const sections = currentPlan.secciones || [];
+    sections.forEach((sec, i) => {
+      const el = document.getElementById('progress-sec-' + i);
+      if (!el) return;
+      const icon = el.querySelector('.icon');
+      if (i < done) {
+        icon.textContent = '✓';
+        icon.style.color = 'var(--green)';
+      } else if (i === done && data.status === 'running') {
+        icon.innerHTML = '<span class="spinner"></span>';
+      }
+    });
+
+    if (data.status === 'completed') {
+      clearInterval(pollInterval);
+      document.getElementById('progress-fill').style.width = '100%';
+      document.getElementById('progress-fill').style.background = 'var(--green)';
+      document.getElementById('status-text').textContent = '';
+      document.getElementById('generate-title').textContent = 'Informe generado';
+
+      renderMetrics(data);
+      document.getElementById('result-area').style.display = 'block';
+
+      if (data.pdf_path) {
+        const filename = data.pdf_path.split('/').pop();
+        const btn = document.getElementById('btn-download');
+        btn.href = '/api/download?nombre=' + encodeURIComponent(filename);
+        btn.style.display = 'inline-flex';
+      }
+    } else if (data.status === 'error') {
+      clearInterval(pollInterval);
+      document.getElementById('status-text').textContent = 'Error: ' + data.error;
+      document.getElementById('progress-fill').style.background = 'var(--red)';
+    }
+  } catch (e) {
+    if (++_pollFailures >= 5) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      document.getElementById('status-text').textContent = 'Error de conexión — recargá la página e intentá nuevamente';
+    }
+  }
+}
+
+function renderMetrics(data) {
+  const grid = document.getElementById('metrics-grid');
+  grid.innerHTML = '';
+
+  function formatTokens(n) {
+    return n ? n.toLocaleString('es-CL') : '—';
+  }
+  function formatTime(secs) {
+    if (!secs) return '—';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  const metrics = [
+    { label: 'Fuentes consultadas', value: data.fuentes_total || '—', sub: 'documentos RAG', color: 'var(--periwinkle)' },
+    { label: 'Tokens usados', value: formatTokens(data.tokens_total), sub: '', color: 'var(--durazno)' },
+    { label: 'Costo estimado', value: data.costo_usd || '—', sub: '', color: 'var(--durazno)' },
+    { label: 'Tiempo total', value: formatTime(data.elapsed_seconds), sub: 'minutos', color: 'var(--text-bright)' },
+  ];
+
+  metrics.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'metric-card';
+    card.innerHTML = `
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value" style="color:${m.color}">${m.value}</div>
+      ${m.sub ? `<div class="metric-sub">${m.sub}</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function newReport() {
+  clearInterval(pollInterval);
+  pollInterval = null;
+  _pollFailures = 0;
+  currentPlan = null;
+  currentJobId = '';
+  document.getElementById('prompt').value = '';
+  document.getElementById('contexto').value = '';
+  pendingClarifyContext = null;
+  const clarifyQs = document.getElementById('clarify-questions');
+  if (clarifyQs) clarifyQs.innerHTML = '';
+  goToStep(2);
+}
+
+// Enter key support
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+document.getElementById('prompt').addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) submitTema(); });
+</script>
+</body>
+</html>
