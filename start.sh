@@ -2,24 +2,24 @@
 # Levanta el frontend del Generador de Informes — Prospecta
 set -e
 
-cd /home/dockeradmin/frontend
+cd /home/dockeradmin/frontend_copia
 
 # Matar proceso previo si existe
-pkill -f "python3 proxy.py" 2>/dev/null && echo "Proceso previo detenido" || true
+pkill -f "python3 /home/dockeradmin/frontend_copia/proxy.py" 2>/dev/null && echo "Proceso previo detenido" || true
 
 sleep 1
 
 # Iniciar (credenciales Nextcloud para galería de informes)
 NEXTCLOUD_USER="${NEXTCLOUD_USER:-prospecta}" \
 NEXTCLOUD_PASS="${NEXTCLOUD_PASS:-L9Qwd-EmpXR-FW6Sn-zgfKM-bE7ox}" \
-nohup python3 proxy.py > proxy.log 2>&1 &
+PORT=9000 nohup python3 /home/dockeradmin/frontend_copia/proxy.py > proxy.log 2>&1 &
 PID=$!
 
 sleep 1
 
 if kill -0 $PID 2>/dev/null; then
-  echo "Frontend iniciado (PID $PID)"
-  echo "URL: http://10.58.114.31:8090"
+  echo "Copia de Frontend OK (PID $PID)"
+  echo "URL: http://10.58.114.31:9000"
 else
   echo "ERROR: el proceso no quedó corriendo. Revisa proxy.log"
   cat proxy.log
