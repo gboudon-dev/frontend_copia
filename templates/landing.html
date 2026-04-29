@@ -4,44 +4,49 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prospecta V2 · DAI · INACAP</title>
-  <link rel="stylesheet" href="/v5/shared/common.css">
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/shared/common.css">
   <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+    body { 
+      background-color: var(--bg-1); 
+      color: var(--ink-1);
+      display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
 
     /* Nav */
-    .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 36px; border-bottom: 1px solid var(--border); }
-    .brand { display: flex; align-items: center; gap: 10px; font-size: 11.5px; letter-spacing: 0.06em; color: var(--periwinkle); border-left: 2px solid var(--periwinkle); padding-left: 10px; }
-    .brand strong { color: var(--text-strong); font-weight: 600; }
+    .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 36px; border-bottom: 1px solid var(--line-1); }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 11.5px; letter-spacing: 0.06em; color: var(--brand-400); border-left: 2px solid var(--brand-400); padding-left: 10px; }
+    .brand strong { color: var(--ink-0); font-weight: 600; }
     .nav-links { display: flex; gap: 22px; align-items: center; font-size: 12px; }
-    .nav-links a { color: var(--text-muted); }
-    .nav-links a:hover { color: var(--text-strong); }
-    .user-chip { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; padding: 4px 10px; border: 1px solid var(--border-hover); border-radius: 12px; }
-    .user-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse-y 2s ease-in-out infinite; }
+    .nav-links a { color: var(--ink-3); }
+    .nav-links a:hover { color: var(--ink-0); }
+    .user-chip { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; padding: 4px 10px; border: 1px solid var(--line-2); border-radius: 12px; }
+    .user-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok-500); animation: pulse-y 2s ease-in-out infinite; }
 
     /* Hero */
     .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 60px 36px; text-align: center; }
     .neural-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.9; pointer-events: none; z-index: 0; mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 95%); -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 30%, transparent 95%); }
     .hero-content { position: relative; z-index: 1; max-width: 840px; }
-    .hero-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 22px; }
-    .hero-title { font-family: var(--font-serif); font-size: 52px; line-height: 1.2; color: var(--text-strong); font-weight: 500; margin: 0 0 18px 0; }
+    .hero-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--ink-3); text-transform: uppercase; margin-bottom: 22px; }
+    .hero-title { font-family: var(--font-display); font-size: 52px; line-height: 1.2; color: var(--ink-0); font-weight: 500; margin: 0 0 18px 0; }
     .typewriter-line { display: inline-flex; align-items: center; gap: 8px; }
     .typewriter-word { font-style: italic; }
-    .typewriter-cursor { display: inline-block; width: 3px; height: 44px; background: var(--periwinkle); animation: pulse-y 0.8s step-end infinite; vertical-align: middle; }
+    .typewriter-cursor { display: inline-block; width: 3px; height: 44px; background: var(--brand-400); animation: pulse-y 0.8s step-end infinite; vertical-align: middle; }
     .hero-subtitle { font-size: 15px; color: var(--text); line-height: 1.6; margin: 0 auto 38px auto; max-width: 620px; }
 
     /* CTAs */
     .ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
-    .cta-primary { padding: 15px 30px; background: var(--periwinkle); color: var(--bg-base); border: 1px solid var(--periwinkle); border-radius: var(--radius-md); font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 10px; box-shadow: var(--shadow-glow-periwinkle); }
+    .cta-primary { padding: 15px 30px; background: var(--brand-400); color: var(--bg-1); border: 1px solid var(--brand-400); border-radius: var(--r-md); font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 10px; box-shadow: var(--glow-brand); }
     .cta-primary:hover { background: #c0d0e5; }
-    .cta-ghost { padding: 15px 28px; background: var(--bg-panel); color: var(--text-strong); border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
-    .cta-ghost:hover { background: var(--bg-hover, rgba(255,255,255,0.06)); border-color: var(--periwinkle); }
+    .cta-ghost { padding: 15px 28px; background: var(--bg-2); color: var(--ink-0); border: 1px solid var(--line-2); border-radius: var(--r-md); font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+    .cta-ghost:hover { background: var(--bg-hover, rgba(255,255,255,0.06)); border-color: var(--brand-400); }
 
     /* Stats strip */
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px dashed var(--border-hover); padding-top: 24px; max-width: 840px; margin: 0 auto; }
-    .stat { text-align: center; padding: 0 16px; border-right: 1px dashed var(--border); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px dashed var(--line-2); padding-top: 24px; max-width: 840px; margin: 0 auto; }
+    .stat { text-align: center; padding: 0 16px; border-right: 1px dashed var(--line-1); }
     .stat:last-child { border-right: none; }
-    .stat-num { font-family: var(--font-serif); font-size: 24px; color: var(--text-strong); margin-bottom: 4px; }
-    .stat-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+    .stat-num { font-family: var(--font-display); font-size: 24px; color: var(--ink-0); margin-bottom: 4px; }
+    .stat-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -85,10 +90,10 @@
   </section>
 
   <script type="module">
-    import { startTypewriter } from "/v5/shared/typewriter.js";
-    import { isAuthenticated, getUser } from "/v5/shared/auth.js";
-    import { renderNeuralBackdrop } from "/v5/shared/neural-backdrop.js";
-    import { resetState } from "/v5/shared/state.js";
+    import { startTypewriter } from "/static/shared/typewriter.js";
+    import { isAuthenticated, getUser } from "/static/shared/auth.js";
+    import { renderNeuralBackdrop } from "/static/shared/neural-backdrop.js";
+    import { resetState } from "/static/shared/state.js";
 
     // CTA principal: resetear estado para arrancar flujo fresco.
     document.getElementById("cta-generar").addEventListener("click", (e) => {

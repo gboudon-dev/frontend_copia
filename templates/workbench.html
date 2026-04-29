@@ -4,29 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workbench · Prospecta</title>
-  <link rel="stylesheet" href="/v5/shared/common.css">
-  <style>
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/shared/common.css">
+<style>
     body { display: grid; grid-template-columns: 1fr 380px; min-height: 100vh; }
+    body {display: grid; grid-template-columns: 1fr 380px; min-height: 100vh; background-color: var(--bg-1); color: var(--ink-1);}
 
     /* Panel central */
     .main { padding: 28px 36px; overflow-y: auto; max-height: 100vh; }
-    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-    .main-brand { display: flex; align-items: center; gap: 10px; font-size: 11.5px; letter-spacing: 0.06em; color: var(--periwinkle); border-left: 2px solid var(--periwinkle); padding-left: 10px; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--line-1); }
+    .main-brand { display: flex; align-items: center; gap: 10px; font-size: 11.5px; letter-spacing: 0.06em; color: var(--brand-400); border-left: 2px solid var(--brand-400); padding-left: 10px; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
     .main-brand:hover { opacity: 0.75; }
-    .main-brand strong { color: var(--text-strong); }
+    .main-brand strong { color: var(--ink-0); }
     .main-user { display: flex; gap: 14px; align-items: center; font-family: var(--font-mono); font-size: 10.5px; }
-    .main-user .logout { color: var(--text-muted); cursor: pointer; }
-    .main-user .logout:hover { color: var(--red-soft); }
+    .main-user .logout { color: var(--ink-3); cursor: pointer; }
+    .main-user .logout:hover { color: var(--err-500); }
 
     /* Slots por momento — solo uno visible */
     .moment { display: none; }
     .moment.active { display: block; }
 
     /* Tech panel */
-    .tech { border-left: 1px solid var(--border); background: var(--bg-panel); padding: 26px 22px; overflow-y: auto; max-height: 100vh; }
-    .tech h3 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 14px 0; }
-    .tech section + section { margin-top: 30px; padding-top: 26px; border-top: 1px dashed var(--border); }
-  </style>
+    .tech { border-left: 1px solid var(--line-1); background: var(--bg-2); padding: 26px 22px; overflow-y: auto; max-height: 100vh; }
+    .tech h3 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px 0; }
+    .tech section + section { margin-top: 30px; padding-top: 26px; border-top: 1px dashed var(--line-2); }
+</style>
 </head>
 <body>
   <main class="main">
@@ -52,14 +54,14 @@
   </aside>
 
   <script type="module">
-    import { requireAuth, getUser, logout } from "/v5/shared/auth.js";
-    import { getState, onMomentChange, goToMoment } from "/v5/shared/state.js";
-    import { mountComposer } from "/v5/shared/moments/composer.js";
-    import { mountClarifier } from "/v5/shared/moments/clarifier.js";
-    import { mountPlan } from "/v5/shared/moments/plan.js";
-    import { mountGeneration } from "/v5/shared/moments/generation.js";
-    import { mountCierre } from "/v5/shared/moments/cierre.js";
-    import { mountTechAgents, mountTechFactbook, mountTechVerifier } from "/v5/shared/tech-panel.js";
+    import { requireAuth, getUser, logout } from "/static/shared/auth.js";
+    import { getState, onMomentChange, goToMoment } from "/static/shared/state.js";
+    import { mountComposer } from "/static/shared/moments/composer.js";
+    import { mountClarifier } from "/static/shared/moments/clarifier.js";
+    import { mountPlan } from "/static/shared/moments/plan.js";
+    import { mountGeneration } from "/static/shared/moments/generation.js";
+    import { mountCierre } from "/static/shared/moments/cierre.js";
+    import { mountTechAgents, mountTechFactbook, mountTechVerifier } from "/static/shared/tech-panel.js";
 
     if (!requireAuth()) { /* redirect ejecutado */ }
 

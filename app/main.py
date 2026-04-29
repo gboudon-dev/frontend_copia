@@ -16,11 +16,33 @@ N8N_WEBHOOK = "http://10.58.114.31:5678/webhook/generar-informe"
 N8N_CHAT_WEBHOOK = "http://10.58.114.31:5678/webhook/chat-prospecta/chat"
 
 @app.get("/", response_class=HTMLResponse)
-async def read_wizard(request: Request):
+async def read_landing(request: Request):
     return templates.TemplateResponse(
         request=request, 
-        name="wizard.html"
+        name="landing.html"
     )
+
+@app.get("/generar", response_class=HTMLResponse)
+async def read_workbench(request: Request):
+    return templates.TemplateResponse(
+        request=request, 
+        name="workbench.html"
+    )
+
+@app.get("/login", response_class=HTMLResponse)
+async def read_login(request: Request):
+    return templates.TemplateResponse(
+        request=Request,
+        name="login.html"
+    )
+
+@app.get("/tecnologia", response_class=HTMLResponse)
+async def read_tecnologia(request: Request):
+    return templates.TemplateResponse(
+        request=Request,
+        name="tecnologia.html"
+    )
+
 
 # --- ENDPOINTS ADAPTADOS DEL PROXY.PY ---
 
